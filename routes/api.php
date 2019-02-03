@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-use MongoDB\Client as Mongo;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,12 +13,12 @@ use MongoDB\Client as Mongo;
 |
 */
 
-//Route::middleware('auth:api')->group(function () {
-//    Route::post('games/{game}/move', 'API\GameController@move');
-//    Route::apiResources([
-//        'games' => 'API\GameController',
-//    ]);
-//});
+Route::middleware('auth:api')->group(function () {
+    Route::post('games/{game}/move', 'API\GameController@move');
+    Route::apiResources([
+        'games' => 'API\GameController',
+    ]);
+});
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
