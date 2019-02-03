@@ -14,27 +14,23 @@ use MongoDB\Client as Mongo;
 |
 */
 
-Route::middleware('auth:api')->group(function () {
-    Route::post('games/{game}/move', 'API\GameController@move');
-    Route::apiResources([
-        'games' => 'API\GameController',
-    ]);
-});
-
-Route::get('mongo', function(Request $request) {
-    // Manager Class
-    $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-
-    // Query Class
-    $query = new MongoDB\Driver\Query(array('age' => 30));
-
-    // Output of the executeQuery will be object of MongoDB\Driver\Cursor class
-    $cursor = $manager->executeQuery('cz.game', $query);
-
-    // Convert cursor to Array and print result
-    print_r($cursor->toArray());
-});
-
-//Route::middleware('auth:api')->get('/user', function (Request $request) {
-//    return $request->user();
+//Route::middleware('auth:api')->group(function () {
+//    Route::post('games/{game}/move', 'API\GameController@move');
+//    Route::apiResources([
+//        'games' => 'API\GameController',
+//    ]);
 //});
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::prefix('auth')->group(function () {
+    Route::post('register', 'AuthController@register');
+    Route::post('login', 'AuthController@login');
+    Route::get('refresh', 'AuthController@refresh');
+    Route::group(['middleware' => 'auth:api'], function(){
+        Route::get('user', 'AuthController@user');
+        Route::post('logout', 'AuthController@logout');
+    });
+});

@@ -18,7 +18,6 @@
         },
         methods: {
             makeMove(event) {
-                console.log(event.target.id);
                 axios.post(`/api/game/move/`, {
                     cell: event.target.id,
                     api_token: this.apiToken,
