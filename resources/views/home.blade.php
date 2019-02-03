@@ -2,22 +2,27 @@
 
 @section('content')
 
-    <div class="container">
-        <div class="row justify-content-center" v-for="n in 3">
-            <div class="col-4 cell" v-for="m in 3" @click="makeMove($event)" v-bind:id="''+n+m"></div>
-        </div>
-    </div>
+    <button class="btn btn-primary">Create New Game</button>
 
-@endsection
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Join</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="game in games">
+            <td>
+                @{{game.name}}
+            </td>
+            <td>
+                <button class="btn btn-success">Join</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
-@section('styles')
-    <style>
-        .cell {
-            height: 150px;
-            border: 1px solid black;
-            background: #1d68a7;
-        }
-    </style>
 @endsection
 
 @section('scripts')
@@ -25,22 +30,25 @@
         const app = new Vue({
             el: '#app',
             data: {
-                user: {!! json_encode(Auth::user()) !!}
+                user: {!! json_encode(Auth::user()) !!},
+                games: {}
             },
             methods: {
-                makeMove(event) {
-                    console.log(event.target.id);
-                    axios.post(`/api/game/move`, {
-                        cell: event.target.id,
-                        api_token: this.user.api_token,
+                getGames() {
+                    //5c56bfd9c89a35
+                    axios.get(`/api/games`, {
+                        headers: {
+                            "Authorization": "Bearer " + this.user.api_token
+                        }
                     }).then((response) => {
-                            console.log(1);
+                            this.games = response.data;
                         }
                     )
                 },
             },
             mounted() {
-                console.log('Component mounted.')
+                console.log('Component mounted.');
+                this.getGames()
             }
         })
     </script>
