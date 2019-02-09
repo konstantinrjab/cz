@@ -11,14 +11,12 @@
         props: ['apiToken'],
         data() {
             return {
-                game: {
-                    id: 1
-                }
+                game: {}
             }
         },
         methods: {
             makeMove(event) {
-                axios.post(`/api/game/move/`, {
+                axios.post(`/api/games/${this.game.id}/move/`, {
                     cell: event.target.id,
                     api_token: this.apiToken,
                 }).then((response) => {
@@ -26,9 +24,18 @@
                     }
                 )
             },
+            getGame() {
+                axios.get(`/games/${this.$route.params.id}/`)
+                    .then((response) => {
+                            this.game = response.data;
+                        }
+                    ).catch(error => {
+                    this.$router.push(`/404`)
+                });
+            }
         },
         mounted() {
-            console.log('Component mounted.')
+            this.getGame()
         }
     }
 </script>

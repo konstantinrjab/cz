@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
 use App\Game;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
 class GameController extends Controller
 {
@@ -37,7 +36,7 @@ class GameController extends Controller
      */
     public function show($id)
     {
-        //
+        return Game::findOrFail($id);
     }
 
     /**

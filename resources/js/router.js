@@ -5,6 +5,8 @@ import Register from './pages/Register'
 import Login from './pages/Login'
 import Dashboard from './pages/user/Dashboard'
 import AdminDashboard from './pages/admin/Dashboard'
+import Game from './pages/Game'
+import PageNotFound from './pages/404'
 // Routes
 const routes = [
     {
@@ -31,6 +33,14 @@ const routes = [
             auth: false
         }
     },
+    {
+        path: '/game/:id',
+        name: 'game',
+        component: Game,
+        meta: {
+            auth: true
+        }
+    },
     // USER ROUTES
     {
         path: '/dashboard',
@@ -49,6 +59,10 @@ const routes = [
             auth: {roles: 2, redirect: {name: 'login'}, forbiddenRedirect: '/403'}
         }
     },
+    {
+        path: "*",
+        component: PageNotFound
+    }
 ];
 
 const router = new VueRouter({

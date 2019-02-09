@@ -16,7 +16,7 @@
                             {{game.name}}
                         </td>
                         <td>
-                            <button class="btn btn-success">Join</button>
+                            <button class="btn btn-success" @click="joinGame(game._id)">Join</button>
                         </td>
                     </tr>
                     </tbody>
@@ -47,6 +47,9 @@
                     }
                 )
             },
+            joinGame(gameID) {
+                this.$router.push(`/game/${gameID}`)
+            }
         },
         mounted() {
             this.getGames()
