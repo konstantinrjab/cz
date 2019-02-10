@@ -1,37 +1,41 @@
 <template>
-    <nav id="nav">
-        <ul>
-            <!--UNLOGGED-->
-            <li v-if="!$auth.check()" v-for="(route, key) in routes.unlogged" v-bind:key="route.path">
-                <router-link  :to="{ name : route.path }" :key="key">
-                    {{route.name}}
-                </router-link>
-            </li>
-            <!--LOGGED USER-->
-            <li v-if="$auth.check(1)" v-for="(route, key) in routes.user" v-bind:key="route.path">
-                <router-link  :to="{ name : route.path }" :key="key">
-                    {{route.name}}
-                </router-link>
-            </li>
-            <!--LOGGED ADMIN-->
-            <li v-if="$auth.check(2)" v-for="(route, key) in routes.admin" v-bind:key="route.path">
-                <router-link  :to="{ name : route.path }" :key="key">
-                    {{route.name}}
-                </router-link>
-            </li>
-            <!--LOGOUT-->
-            <li v-if="$auth.check()">
-                <a href="#" @click.prevent="$auth.logout()">Logout</a>
-            </li>
-        </ul>
-    </nav>
+    <div class="container">
+        <nav id="nav" class="navbar navbar-expand-sm navbar-light bg-light">
+            <a class="navbar-brand" href="#">Cross Zeros</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMenu"
+                    aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMenu">
+                <ul class="navbar-nav mr-auto">
+                    <!--UNLOGGED-->
+                    <li class="nav-item" v-if="!$auth.check()" v-for="(route, key) in routes.unlogged"
+                        v-bind:key="route.path">
+                        <router-link class="nav-link" :to="{ name : route.path }" :key="key">
+                            {{route.name}}
+                        </router-link>
+                    </li>
+                    <li v-if="$auth.check()" v-for="(route, key) in routes.user" v-bind:key="route.path">
+                        <router-link class="nav-link" :to="{ name : route.path }" :key="key">
+                            {{route.name}}
+                        </router-link>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li v-if="$auth.check()">
+                        <a href="#" class="nav-link" @click.prevent="$auth.logout()">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
 </template>
 <script>
     export default {
         data() {
             return {
                 routes: {
-                    // UNLOGGED
                     unlogged: [
                         {
                             name: 'Register',
@@ -42,20 +46,12 @@
                             path: 'login'
                         }
                     ],
-                    // LOGGED USER
                     user: [
                         {
                             name: 'Dashboard',
                             path: 'dashboard'
                         }
                     ],
-                    // LOGGED ADMIN
-                    admin: [
-                        {
-                            name: 'Dashboard',
-                            path: 'admin.dashboard'
-                        }
-                    ]
                 }
             }
         },

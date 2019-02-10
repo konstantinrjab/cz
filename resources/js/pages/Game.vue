@@ -8,7 +8,6 @@
 
 <script>
     export default {
-        props: ['apiToken'],
         data() {
             return {
                 game: {}
@@ -16,16 +15,23 @@
         },
         methods: {
             makeMove(event) {
-                axios.post(`/api/games/${this.game.id}/move/`, {
+                axios.put(`/games/${this.game._id}`, {
                     cell: event.target.id,
-                    api_token: this.apiToken,
                 }).then((response) => {
-                        console.log(1);
+                        $.each(response.data.state, function (index, value) {
+                            if (value === 1) {
+                                $('#'+index).addClass('cross')
+                            }
+                            if (value === 0) {
+                                $('#'+index).addClass('zero')
+                            }
+                            console.log(index + ": " + value);
+                        })
                     }
                 )
             },
             getGame() {
-                axios.get(`/games/${this.$route.params.id}/`)
+                axios.get(`/games/${this.$route.params.id}`)
                     .then((response) => {
                             this.game = response.data;
                         }
@@ -42,8 +48,45 @@
 
 <style>
     .cell {
+        flex: 0 0 150px;
+        padding: 0;
         height: 150px;
         border: 1px solid black;
         background: #1d68a7;
     }
+
+    .cross:hover {
+        opacity: 1;
+    }
+    .cross:before, .cross:after {
+        position: absolute;
+        left: 50%;
+        top: 25px;
+        content: ' ';
+        height: 100px;
+        width: 2px;
+        background-color: #333;
+    }
+    .cross:before {
+        transform: rotate(45deg);
+    }
+    .cross:after {
+        transform: rotate(-45deg);
+    }
+
+    .zero {
+
+    }
+
+    .zero:before {
+        position: absolute;
+        left: 25px;
+        top: 25px;
+        content: ' ';
+        height: 100px;
+        border: 2px solid black;
+        border-radius: 50%;
+        width: 100px;
+    }
+
 </style>

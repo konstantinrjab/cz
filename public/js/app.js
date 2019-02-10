@@ -2951,13 +2951,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -3008,11 +3001,15 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       routes: {
-        // UNLOGGED
         unlogged: [{
           name: 'Register',
           path: 'register'
@@ -3020,15 +3017,9 @@ __webpack_require__.r(__webpack_exports__);
           name: 'Login',
           path: 'login'
         }],
-        // LOGGED USER
         user: [{
           name: 'Dashboard',
           path: 'dashboard'
-        }],
-        // LOGGED ADMIN
-        admin: [{
-          name: 'Dashboard',
-          path: 'admin.dashboard'
         }]
       }
     };
@@ -3057,7 +3048,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 /* harmony default export */ __webpack_exports__["default"] = ({
-  props: ['apiToken'],
   data: function data() {
     return {
       game: {}
@@ -3065,17 +3055,26 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     makeMove: function makeMove(event) {
-      axios.post("/api/games/".concat(this.game.id, "/move/"), {
-        cell: event.target.id,
-        api_token: this.apiToken
+      axios.put("/games/".concat(this.game._id), {
+        cell: event.target.id
       }).then(function (response) {
-        console.log(1);
+        $.each(response.data.state, function (index, value) {
+          if (value === 1) {
+            $('#' + index).addClass('cross');
+          }
+
+          if (value === 0) {
+            $('#' + index).addClass('zero');
+          }
+
+          console.log(index + ": " + value);
+        });
       });
     },
     getGame: function getGame() {
       var _this = this;
 
-      axios.get("/games/".concat(this.$route.params.id, "/")).then(function (response) {
+      axios.get("/games/".concat(this.$route.params.id)).then(function (response) {
         _this.game = response.data;
       }).catch(function (error) {
         _this.$router.push("/404");
@@ -3317,7 +3316,6 @@ __webpack_require__.r(__webpack_exports__);
     getGames: function getGames() {
       var _this = this;
 
-      //5c56bfd9c89a35
       axios.get("/games", {// headers: {
         //     "Authorization": "Bearer " + this.user.api_token
         // }
@@ -7607,7 +7605,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\n.cell {\n    height: 150px;\n    border: 1px solid black;\n    background: #1d68a7;\n}\n", ""]);
+exports.push([module.i, "\n.cell {\n    flex: 0 0 150px;\n    padding: 0;\n    height: 150px;\n    border: 1px solid black;\n    background: #1d68a7;\n}\n.cross:hover {\n    opacity: 1;\n}\n.cross:before, .cross:after {\n    position: absolute;\n    left: 50%;\n    top: 25px;\n    content: ' ';\n    height: 100px;\n    width: 2px;\n    background-color: #333;\n}\n.cross:before {\n    -webkit-transform: rotate(45deg);\n            transform: rotate(45deg);\n}\n.cross:after {\n    -webkit-transform: rotate(-45deg);\n            transform: rotate(-45deg);\n}\n.zero {\n}\n.zero:before {\n    position: absolute;\n    left: 25px;\n    top: 25px;\n    content: ' ';\n    height: 100px;\n    border: 2px solid black;\n    border-radius: 50%;\n    width: 100px;\n}\n\n", ""]);
 
 // exports
 
@@ -40051,28 +40049,16 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { attrs: { id: "main" } }, [
-    _c(
-      "header",
-      { attrs: { id: "header" } },
-      [
-        _c(
-          "h1",
-          [
-            _c("router-link", { attrs: { to: { name: "home" } } }, [
-              _vm._v("\n                Laravel Vue SPA\n            ")
-            ])
-          ],
-          1
-        ),
-        _vm._v(" "),
-        _c("navigationMenu")
-      ],
-      1
-    ),
-    _vm._v(" "),
-    _c("div", { attrs: { id: "content" } }, [_c("router-view")], 1)
-  ])
+  return _c(
+    "div",
+    { attrs: { id: "main" } },
+    [
+      _c("navigationMenu"),
+      _vm._v(" "),
+      _c("div", { attrs: { id: "content" } }, [_c("router-view")], 1)
+    ],
+    1
+  )
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -40096,102 +40082,136 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("nav", { attrs: { id: "nav" } }, [
+  return _c("div", { staticClass: "container" }, [
     _c(
-      "ul",
+      "nav",
+      {
+        staticClass: "navbar navbar-expand-sm navbar-light bg-light",
+        attrs: { id: "nav" }
+      },
       [
-        _vm._l(_vm.routes.unlogged, function(route, key) {
-          return !_vm.$auth.check()
-            ? _c(
-                "li",
-                { key: route.path },
-                [
-                  _c(
-                    "router-link",
-                    { key: key, attrs: { to: { name: route.path } } },
-                    [
-                      _vm._v(
-                        "\n                " +
-                          _vm._s(route.name) +
-                          "\n            "
-                      )
-                    ]
-                  )
-                ],
-                1
-              )
-            : _vm._e()
-        }),
+        _c("a", { staticClass: "navbar-brand", attrs: { href: "#" } }, [
+          _vm._v("Cross Zeros")
+        ]),
         _vm._v(" "),
-        _vm._l(_vm.routes.user, function(route, key) {
-          return _vm.$auth.check(1)
-            ? _c(
-                "li",
-                { key: route.path },
-                [
-                  _c(
-                    "router-link",
-                    { key: key, attrs: { to: { name: route.path } } },
-                    [
-                      _vm._v(
-                        "\n                " +
-                          _vm._s(route.name) +
-                          "\n            "
-                      )
-                    ]
-                  )
-                ],
-                1
-              )
-            : _vm._e()
-        }),
+        _vm._m(0),
         _vm._v(" "),
-        _vm._l(_vm.routes.admin, function(route, key) {
-          return _vm.$auth.check(2)
-            ? _c(
-                "li",
-                { key: route.path },
-                [
-                  _c(
-                    "router-link",
-                    { key: key, attrs: { to: { name: route.path } } },
-                    [
-                      _vm._v(
-                        "\n                " +
-                          _vm._s(route.name) +
-                          "\n            "
+        _c(
+          "div",
+          {
+            staticClass: "collapse navbar-collapse",
+            attrs: { id: "navbarMenu" }
+          },
+          [
+            _c(
+              "ul",
+              { staticClass: "navbar-nav mr-auto" },
+              [
+                _vm._l(_vm.routes.unlogged, function(route, key) {
+                  return !_vm.$auth.check()
+                    ? _c(
+                        "li",
+                        { key: route.path, staticClass: "nav-item" },
+                        [
+                          _c(
+                            "router-link",
+                            {
+                              key: key,
+                              staticClass: "nav-link",
+                              attrs: { to: { name: route.path } }
+                            },
+                            [
+                              _vm._v(
+                                "\n                        " +
+                                  _vm._s(route.name) +
+                                  "\n                    "
+                              )
+                            ]
+                          )
+                        ],
+                        1
                       )
-                    ]
-                  )
-                ],
-                1
-              )
-            : _vm._e()
-        }),
-        _vm._v(" "),
-        _vm.$auth.check()
-          ? _c("li", [
-              _c(
-                "a",
-                {
-                  attrs: { href: "#" },
-                  on: {
-                    click: function($event) {
-                      $event.preventDefault()
-                      _vm.$auth.logout()
-                    }
-                  }
-                },
-                [_vm._v("Logout")]
-              )
+                    : _vm._e()
+                }),
+                _vm._v(" "),
+                _vm._l(_vm.routes.user, function(route, key) {
+                  return _vm.$auth.check()
+                    ? _c(
+                        "li",
+                        { key: route.path },
+                        [
+                          _c(
+                            "router-link",
+                            {
+                              key: key,
+                              staticClass: "nav-link",
+                              attrs: { to: { name: route.path } }
+                            },
+                            [
+                              _vm._v(
+                                "\n                        " +
+                                  _vm._s(route.name) +
+                                  "\n                    "
+                              )
+                            ]
+                          )
+                        ],
+                        1
+                      )
+                    : _vm._e()
+                })
+              ],
+              2
+            ),
+            _vm._v(" "),
+            _c("ul", { staticClass: "navbar-nav ml-auto" }, [
+              _vm.$auth.check()
+                ? _c("li", [
+                    _c(
+                      "a",
+                      {
+                        staticClass: "nav-link",
+                        attrs: { href: "#" },
+                        on: {
+                          click: function($event) {
+                            $event.preventDefault()
+                            _vm.$auth.logout()
+                          }
+                        }
+                      },
+                      [_vm._v("Logout")]
+                    )
+                  ])
+                : _vm._e()
             ])
-          : _vm._e()
-      ],
-      2
+          ]
+        )
+      ]
     )
   ])
 }
-var staticRenderFns = []
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "button",
+      {
+        staticClass: "navbar-toggler",
+        attrs: {
+          type: "button",
+          "data-toggle": "collapse",
+          "data-target": "#navbarMenu",
+          "aria-controls": "navbarMenu",
+          "aria-expanded": "false",
+          "aria-label": "Toggle navigation"
+        }
+      },
+      [_c("span", { staticClass: "navbar-toggler-icon" })]
+    )
+  }
+]
 render._withStripped = true
 
 

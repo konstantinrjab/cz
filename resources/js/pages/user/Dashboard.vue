@@ -37,7 +37,6 @@
         },
         methods: {
             getGames() {
-                //5c56bfd9c89a35
                 axios.get(`/games`, {
                     // headers: {
                     //     "Authorization": "Bearer " + this.user.api_token

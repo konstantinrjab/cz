@@ -40,15 +40,14 @@ class GameController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Game $game
+     * @return Game
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Game $game)
     {
-        //
+        $request->cell;
+        return $game->toJson();
     }
 
     /**
