@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Game;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class GameController extends Controller
 {
@@ -20,7 +21,7 @@ class GameController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -31,7 +32,7 @@ class GameController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -46,14 +47,28 @@ class GameController extends Controller
      */
     public function update(Request $request, Game $game)
     {
-        $request->cell;
-        return $game->toJson();
+        if ($game['players']['turn'] != Auth::user()->id) {
+            return $game;
+        }
+
+        $cell = $request->cell;
+        $sign = $game->getSign(Auth::user()->id);
+
+        if($cell == $sign) {
+            return $game;
+        }
+
+        $game->update(["state.$request->cell" => $game->getSign(Auth::user()->id)], ['upsert' => true]);
+        $game->changeTurn(Auth::user()->id);
+        $game->save();
+
+        return $game;
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)

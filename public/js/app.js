@@ -3316,10 +3316,7 @@ __webpack_require__.r(__webpack_exports__);
     getGames: function getGames() {
       var _this = this;
 
-      axios.get("/games", {// headers: {
-        //     "Authorization": "Bearer " + this.user.api_token
-        // }
-      }).then(function (response) {
+      axios.get("/games").then(function (response) {
         _this.games = response.data;
       });
     },
