@@ -3,6 +3,10 @@
         <div class="card card-default">
             <div class="card-header">Dashboard</div>
             <div class="card-body">
+                <div class="form-group">
+                    <router-link to="/game/create" class="btn btn-success form-control">Create New Game</router-link>
+
+                </div>
                 <table class="table">
                     <thead>
                     <tr>
@@ -16,7 +20,7 @@
                             {{game.name}}
                         </td>
                         <td>
-                            <button class="btn btn-success" @click="joinGame(game._id)">Join</button>
+                            <button class="btn btn-outline-primary" @click="joinGame(game._id)">Join</button>
                         </td>
                     </tr>
                     </tbody>
@@ -32,20 +36,23 @@
                 games: {}
             }
         },
-        components: {
-            //
-        },
         methods: {
             getGames() {
                 axios.get(`/games`)
                     .then((response) => {
-                        this.games = response.data;
-                    }
-                )
+                            this.games = response.data;
+                        }
+                    )
             },
             joinGame(gameID) {
-                this.$router.push(`/game/${gameID}`)
-            }
+                axios.post(`/games/${gameID}/join`)
+                    .then((response) => {
+                            this.$router.push(`/games/${response.data.game._id}`)
+                        }
+                    ).catch(() => {
+                    console.log(error);
+                });
+            },
         },
         mounted() {
             this.getGames()

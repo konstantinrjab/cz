@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Game;
+use App\Http\Requests\CreateGame;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class GameController extends Controller
 {
@@ -19,14 +21,30 @@ class GameController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param CreateGame $request
+     * @return mixed
      */
-    public function store(Request $request)
+    public function store(CreateGame $request)
     {
-        //
+        $state = new \StdClass();
+        for ($i = 1; $i <= 3; $i++) {
+            for ($j = 1; $j <= 3; $j++) {
+                $state->{$i . $j} = null;
+            }
+        }
+        $players = new \StdClass();
+        $players->turn = Auth::user()->id;
+        $players->{1} = Auth::user()->id;
+        $players->{0} = null;
+
+        return Game::create([
+            'status'   => 2,
+            'name'     => $request->name,
+            'password' => $request->password,
+            'winner'   => null,
+            'players'  => $players,
+            'state'    => $state,
+        ]);
     }
 
     /**
@@ -37,7 +55,19 @@ class GameController extends Controller
      */
     public function show($id)
     {
-        return Game::findOrFail($id);
+        $game = Game::find($id);
+        if (!$game) {
+            throw new NotFoundHttpException();
+        }
+        $p = $game['players'];
+
+        foreach ($game['players'] as $player) {
+            if ($player == Auth::user()->id) {
+                return $game;
+            }
+        }
+
+        return response()->json(['error' => 'Not authorized.'],403);
     }
 
     /**
@@ -67,7 +97,7 @@ class GameController extends Controller
             return $game;
         }
 
-        $game->update(["state.$request->cell" => $game->getSign(Auth::user()->id)], ['upsert' => true]);
+        $game->update(["state.$request->cell" => $game->getSign(Auth::user()->id)]);
 
         $game->changeTurn(Auth::user()->id);
         $game->checkWinner();
@@ -85,5 +115,26 @@ class GameController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function join(Request $request, Game $game)
+    {
+        if ($game['players'][Game::CROSS] == Auth::user()->id or $game['players'][Game::ZERO] == Auth::user()->id) {
+            return $game;
+        }
+
+        if (empty($game['players'][Game::ZERO])) {
+            $game->update(["players." . Game::ZERO => Auth::user()->id]);
+        }
+
+        if (!empty($game['players'][Game::CROSS]) && !empty($game['players'][Game::ZERO])) {
+            $game->update(["status" => Game::STARTED]);
+        }
+
+        if (!empty($game['players'][Game::CROSS]) && !empty($game['players'][Game::ZERO])) {
+            return response('Game already started', 403);
+        }
+
+        return $game;
     }
 }

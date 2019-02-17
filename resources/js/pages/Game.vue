@@ -40,6 +40,7 @@
                 )
             },
             getGame() {
+                console.log(this.$auth.user()._id);
                 axios.get(`/games/${this.$route.params.id}`)
                     .then((response) => {
                             this.game = response.data;

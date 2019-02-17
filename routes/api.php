@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 */
 
 Route::middleware('auth:api')->group(function () {
+    Route::post('/games/{game}/join', 'GameController@join')->name('join-game');
     Route::apiResources([
         'games' => 'GameController',
     ]);

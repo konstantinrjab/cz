@@ -6,6 +6,7 @@ use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -62,7 +63,7 @@ class AuthController extends Controller
     {
         if ($token = $this->guard()->refresh()) {
             return response()
-                ->json(['status' => 'successs'], 200)
+                ->json(['status' => 'success'], 200)
                 ->header('Authorization', $token);
         }
 

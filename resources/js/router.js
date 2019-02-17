@@ -5,6 +5,7 @@ import Register from './pages/Register'
 import Login from './pages/Login'
 import Dashboard from './pages/user/Dashboard'
 import AdminDashboard from './pages/admin/Dashboard'
+import CreateGame from './pages/CreateGame'
 import Game from './pages/Game'
 import PageNotFound from './pages/404'
 // Routes
@@ -31,6 +32,14 @@ const routes = [
         component: Login,
         meta: {
             auth: false
+        }
+    },
+    {
+        path: '/game/create',
+        name: 'game.create',
+        component: CreateGame,
+        meta: {
+            auth: true
         }
     },
     {

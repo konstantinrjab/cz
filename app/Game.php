@@ -47,7 +47,7 @@ class Game extends Eloquent
             $nexTurnUserID = $this['players'][self::CROSS];
         }
 
-        $this->update(["players.turn" => $nexTurnUserID], ['upsert' => true]);
+        $this->update(["players.turn" => $nexTurnUserID]);
     }
 
     public function checkWinner()
@@ -76,7 +76,7 @@ class Game extends Eloquent
                     continue;
                 }
 
-                $this['winner'] = $this['players'][$sign];
+                $this->update(["winner" =>  $this['players'][$sign]]);
             }
         }
     }
