@@ -4,7 +4,7 @@
             <div class="card-header">Dashboard</div>
             <div class="card-body">
                 <div class="form-group">
-                    <router-link to="/game/create" class="btn btn-success form-control">Create New Game</router-link>
+                    <router-link to="/games/create" class="btn btn-success form-control">Create New Game</router-link>
 
                 </div>
                 <table class="table">
@@ -47,9 +47,9 @@
             joinGame(gameID) {
                 axios.post(`/games/${gameID}/join`)
                     .then((response) => {
-                            this.$router.push(`/games/${response.data.game._id}`)
+                        this.$router.push(`/games/${response.data._id}`)
                         }
-                    ).catch(() => {
+                    ).catch((error) => {
                     console.log(error);
                 });
             },

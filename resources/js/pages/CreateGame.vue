@@ -36,7 +36,7 @@
                     name: this.name,
                 })
                     .then((response) => {
-                        this.$router.push(`/game/${response.data._id}`)
+                        this.$router.push(`/games/${response.data._id}`)
                         }
                     )
                     .catch((error) => {

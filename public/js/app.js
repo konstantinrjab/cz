@@ -3077,7 +3077,7 @@ __webpack_require__.r(__webpack_exports__);
       axios.post("/games", {
         name: this.name
       }).then(function (response) {
-        _this.$router.push("/game/".concat(response.data._id));
+        _this.$router.push("/games/".concat(response.data._id));
       }).catch(function (error) {
         _this.errors = error.response.data.errors;
       });
@@ -3113,7 +3113,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      result: "",
+      statusIndicator: "",
       game: {}
     };
   },
@@ -3128,6 +3128,11 @@ __webpack_require__.r(__webpack_exports__);
           $('#' + index).addClass('zero');
         }
       });
+
+      if (this.game.players.turn === this.$auth.user()._id && this.game.status === 3) {
+        this.statusIndicator = 'You turn';
+      }
+
       this.checkWinner();
     },
     makeMove: function makeMove(event) {
@@ -3155,9 +3160,9 @@ __webpack_require__.r(__webpack_exports__);
       if (!this.game['winner']) return;
 
       if (this.game['winner'] === this.$auth.user()._id) {
-        this.result = 'You win';
+        this.statusIndicator = 'You win';
       } else {
-        this.result = 'You lose';
+        this.statusIndicator = 'You lose';
       }
     }
   },
@@ -3407,8 +3412,8 @@ __webpack_require__.r(__webpack_exports__);
       var _this2 = this;
 
       axios.post("/games/".concat(gameID, "/join")).then(function (response) {
-        _this2.$router.push("/games/".concat(response.data.game._id));
-      }).catch(function () {
+        _this2.$router.push("/games/".concat(response.data._id));
+      }).catch(function (error) {
         console.log(error);
       });
     }
@@ -40493,9 +40498,11 @@ var render = function() {
       0
     ),
     _vm._v(" "),
-    _vm.result
-      ? _c("div", { staticClass: "result" }, [
-          _c("h2", { staticClass: "text-center" }, [_vm._v(_vm._s(_vm.result))])
+    _vm.statusIndicator
+      ? _c("div", { staticClass: "statusIndicator" }, [
+          _c("h2", { staticClass: "text-center" }, [
+            _vm._v(_vm._s(_vm.statusIndicator))
+          ])
         ])
       : _vm._e()
   ])
@@ -40904,7 +40911,7 @@ var render = function() {
               "router-link",
               {
                 staticClass: "btn btn-success form-control",
-                attrs: { to: "/game/create" }
+                attrs: { to: "/games/create" }
               },
               [_vm._v("Create New Game")]
             )
@@ -55754,15 +55761,15 @@ var routes = [{
     auth: false
   }
 }, {
-  path: '/game/create',
-  name: 'game.create',
+  path: '/games/create',
+  name: 'games.create',
   component: _pages_CreateGame__WEBPACK_IMPORTED_MODULE_6__["default"],
   meta: {
     auth: true
   }
 }, {
-  path: '/game/:id',
-  name: 'game',
+  path: '/games/:id',
+  name: 'games',
   component: _pages_Game__WEBPACK_IMPORTED_MODULE_7__["default"],
   meta: {
     auth: true

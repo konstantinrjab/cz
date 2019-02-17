@@ -5,8 +5,8 @@
                 <div class="col-4 cell" v-for="m in 3" @click="makeMove($event)" v-bind:id="''+n+m"></div>
             </div>
         </div>
-        <div class="result" v-if="result">
-            <h2 class="text-center">{{ result }}</h2>
+        <div class="statusIndicator" v-if="statusIndicator">
+            <h2 class="text-center">{{ statusIndicator }}</h2>
         </div>
     </div>
 </template>
@@ -15,7 +15,7 @@
     export default {
         data() {
             return {
-                result: "",
+                statusIndicator: "",
                 game: {}
             }
         },
@@ -29,6 +29,9 @@
                         $('#' + index).addClass('zero')
                     }
                 });
+                if (this.game.players.turn === this.$auth.user()._id && this.game.status === 3) {
+                    this.statusIndicator = 'You turn';
+                }
                 this.checkWinner()
             },
             makeMove(event) {
@@ -54,9 +57,9 @@
                 if (!this.game['winner']) return;
 
                 if (this.game['winner'] === this.$auth.user()._id) {
-                    this.result = 'You win';
+                    this.statusIndicator = 'You win';
                 } else {
-                    this.result = 'You lose';
+                    this.statusIndicator = 'You lose';
                 }
             }
         },

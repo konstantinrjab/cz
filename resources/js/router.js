@@ -35,16 +35,16 @@ const routes = [
         }
     },
     {
-        path: '/game/create',
-        name: 'game.create',
+        path: '/games/create',
+        name: 'games.create',
         component: CreateGame,
         meta: {
             auth: true
         }
     },
     {
-        path: '/game/:id',
-        name: 'game',
+        path: '/games/:id',
+        name: 'games',
         component: Game,
         meta: {
             auth: true
