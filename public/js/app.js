@@ -3047,38 +3047,59 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      result: "",
       game: {}
     };
   },
   methods: {
+    renderState: function renderState(data) {
+      $.each(data.state, function (index, value) {
+        if (value === 1) {
+          $('#' + index).addClass('cross');
+        }
+
+        if (value === 0) {
+          $('#' + index).addClass('zero');
+        }
+      });
+      this.checkWinner();
+    },
     makeMove: function makeMove(event) {
+      var _this = this;
+
       axios.put("/games/".concat(this.game._id), {
         cell: event.target.id
       }).then(function (response) {
-        $.each(response.data.state, function (index, value) {
-          if (value === 1) {
-            $('#' + index).addClass('cross');
-          }
-
-          if (value === 0) {
-            $('#' + index).addClass('zero');
-          }
-
-          console.log(index + ": " + value);
-        });
+        _this.renderState(response.data);
       });
     },
     getGame: function getGame() {
-      var _this = this;
+      var _this2 = this;
 
       axios.get("/games/".concat(this.$route.params.id)).then(function (response) {
-        _this.game = response.data;
+        _this2.game = response.data;
+
+        _this2.renderState(response.data);
       }).catch(function (error) {
-        _this.$router.push("/404");
+        _this2.$router.push("/404");
       });
+    },
+    checkWinner: function checkWinner() {
+      if (!this.game['winner']) return;
+
+      if (this.game['winner'] === this.$auth.user()._id) {
+        this.result = 'You win';
+      } else {
+        this.result = 'You lose';
+      }
     }
   },
   mounted: function mounted() {
@@ -3169,6 +3190,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+//
 //
 //
 //
@@ -7602,7 +7624,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\n.cell {\n    flex: 0 0 150px;\n    padding: 0;\n    height: 150px;\n    border: 1px solid black;\n    background: #1d68a7;\n}\n.cross:hover {\n    opacity: 1;\n}\n.cross:before, .cross:after {\n    position: absolute;\n    left: 50%;\n    top: 25px;\n    content: ' ';\n    height: 100px;\n    width: 2px;\n    background-color: #333;\n}\n.cross:before {\n    -webkit-transform: rotate(45deg);\n            transform: rotate(45deg);\n}\n.cross:after {\n    -webkit-transform: rotate(-45deg);\n            transform: rotate(-45deg);\n}\n.zero {\n}\n.zero:before {\n    position: absolute;\n    left: 25px;\n    top: 25px;\n    content: ' ';\n    height: 100px;\n    border: 2px solid black;\n    border-radius: 50%;\n    width: 100px;\n}\n\n", ""]);
+exports.push([module.i, "\n.cell {\n    flex: 0 0 150px;\n    padding: 0;\n    height: 150px;\n    border: 1px solid black;\n    background: #1d68a7;\n}\n.cross:hover {\n    opacity: 1;\n}\n.cross:before, .cross:after {\n    position: absolute;\n    left: 50%;\n    top: 25px;\n    content: ' ';\n    height: 100px;\n    width: 2px;\n    background-color: #333;\n}\n.cross:before {\n    -webkit-transform: rotate(45deg);\n            transform: rotate(45deg);\n}\n.cross:after {\n    -webkit-transform: rotate(-45deg);\n            transform: rotate(-45deg);\n}\n.zero:before {\n    position: absolute;\n    left: 25px;\n    top: 25px;\n    content: ' ';\n    height: 100px;\n    border: 2px solid black;\n    border-radius: 50%;\n    width: 100px;\n}\n\n", ""]);
 
 // exports
 
@@ -40269,29 +40291,37 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    { staticClass: "container" },
-    _vm._l(3, function(n) {
-      return _c(
-        "div",
-        { staticClass: "row justify-content-center" },
-        _vm._l(3, function(m) {
-          return _c("div", {
-            staticClass: "col-4 cell",
-            attrs: { id: "" + n + m },
-            on: {
-              click: function($event) {
-                _vm.makeMove($event)
+  return _c("div", {}, [
+    _c(
+      "div",
+      { staticClass: "container" },
+      _vm._l(3, function(n) {
+        return _c(
+          "div",
+          { staticClass: "row justify-content-center" },
+          _vm._l(3, function(m) {
+            return _c("div", {
+              staticClass: "col-4 cell",
+              attrs: { id: "" + n + m },
+              on: {
+                click: function($event) {
+                  _vm.makeMove($event)
+                }
               }
-            }
-          })
-        }),
-        0
-      )
-    }),
-    0
-  )
+            })
+          }),
+          0
+        )
+      }),
+      0
+    ),
+    _vm._v(" "),
+    _vm.result
+      ? _c("div", { staticClass: "result" }, [
+          _c("h2", { staticClass: "text-center" }, [_vm._v(_vm._s(_vm.result))])
+        ])
+      : _vm._e()
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -40421,7 +40451,7 @@ var render = function() {
             ]),
             _vm._v(" "),
             _c("div", { staticClass: "form-group" }, [
-              _c("label", { attrs: { for: "password" } }, [_vm._v("Pasword")]),
+              _c("label", { attrs: { for: "password" } }, [_vm._v("Password")]),
               _vm._v(" "),
               _c("input", {
                 directives: [
@@ -40484,14 +40514,6 @@ var render = function() {
       _c("div", { staticClass: "card-header" }, [_vm._v("Inscription")]),
       _vm._v(" "),
       _c("div", { staticClass: "card-body" }, [
-        _vm.has_error && !_vm.success
-          ? _c("div", { staticClass: "alert alert-danger" }, [
-              _vm.error == "registration_validation_error"
-                ? _c("p", [_vm._v("There was some errors:")])
-                : _c("p", [_vm._v("Something went wrong")])
-            ])
-          : _vm._e(),
-        _vm._v(" "),
         !_vm.success
           ? _c(
               "form",
@@ -40505,91 +40527,79 @@ var render = function() {
                 }
               },
               [
-                _c(
-                  "div",
-                  {
-                    staticClass: "form-group",
-                    class: { "has-error": _vm.has_error && _vm.errors.email }
-                  },
-                  [
-                    _c("label", { attrs: { for: "email" } }, [
-                      _vm._v("E-mail")
-                    ]),
-                    _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.email,
-                          expression: "email"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        type: "email",
-                        id: "email",
-                        placeholder: "user@example.com"
-                      },
-                      domProps: { value: _vm.email },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
-                          }
-                          _vm.email = $event.target.value
-                        }
+                _c("div", { staticClass: "form-group" }, [
+                  _c("label", { attrs: { for: "email" } }, [_vm._v("E-mail")]),
+                  _vm._v(" "),
+                  _c("input", {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.email,
+                        expression: "email"
                       }
-                    }),
-                    _vm._v(" "),
-                    _vm.has_error && _vm.errors.email
-                      ? _c("span", { staticClass: "help-block" }, [
-                          _vm._v(_vm._s(_vm.errors.email))
-                        ])
-                      : _vm._e()
-                  ]
-                ),
+                    ],
+                    staticClass: "form-control",
+                    class: { "is-invalid": _vm.has_error && _vm.errors.email },
+                    attrs: {
+                      type: "email",
+                      id: "email",
+                      placeholder: "user@example.com"
+                    },
+                    domProps: { value: _vm.email },
+                    on: {
+                      input: function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.email = $event.target.value
+                      }
+                    }
+                  }),
+                  _vm._v(" "),
+                  _vm.has_error && _vm.errors.email
+                    ? _c("span", { staticClass: "help-block text-danger" }, [
+                        _vm._v(_vm._s(_vm.errors.email[0]))
+                      ])
+                    : _vm._e()
+                ]),
                 _vm._v(" "),
-                _c(
-                  "div",
-                  {
-                    staticClass: "form-group",
-                    class: { "has-error": _vm.has_error && _vm.errors.password }
-                  },
-                  [
-                    _c("label", { attrs: { for: "password" } }, [
-                      _vm._v("Password")
-                    ]),
-                    _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.password,
-                          expression: "password"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: { type: "password", id: "password" },
-                      domProps: { value: _vm.password },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
-                          }
-                          _vm.password = $event.target.value
-                        }
+                _c("div", { staticClass: "form-group" }, [
+                  _c("label", { attrs: { for: "password" } }, [
+                    _vm._v("Password")
+                  ]),
+                  _vm._v(" "),
+                  _c("input", {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.password,
+                        expression: "password"
                       }
-                    }),
-                    _vm._v(" "),
-                    _vm.has_error && _vm.errors.password
-                      ? _c("span", { staticClass: "help-block" }, [
-                          _vm._v(_vm._s(_vm.errors.password))
-                        ])
-                      : _vm._e()
-                  ]
-                ),
+                    ],
+                    staticClass: "form-control",
+                    class: {
+                      "is-invalid": _vm.has_error && _vm.errors.password
+                    },
+                    attrs: { type: "password", id: "password" },
+                    domProps: { value: _vm.password },
+                    on: {
+                      input: function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.password = $event.target.value
+                      }
+                    }
+                  }),
+                  _vm._v(" "),
+                  _vm.has_error && _vm.errors.password
+                    ? _c("span", { staticClass: "help-block text-danger" }, [
+                        _vm._v(_vm._s(_vm.errors.password[0]))
+                      ])
+                    : _vm._e()
+                ]),
                 _vm._v(" "),
                 _c(
                   "div",
@@ -40599,7 +40609,7 @@ var render = function() {
                   },
                   [
                     _c("label", { attrs: { for: "password_confirmation" } }, [
-                      _vm._v("Password onfirmation")
+                      _vm._v("Password confirmation")
                     ]),
                     _vm._v(" "),
                     _c("input", {
@@ -40612,6 +40622,9 @@ var render = function() {
                         }
                       ],
                       staticClass: "form-control",
+                      class: {
+                        "is-invalid": _vm.has_error && _vm.errors.password
+                      },
                       attrs: { type: "password", id: "password_confirmation" },
                       domProps: { value: _vm.password_confirmation },
                       on: {
@@ -40628,8 +40641,8 @@ var render = function() {
                 _vm._v(" "),
                 _c(
                   "button",
-                  { staticClass: "btn btn-default", attrs: { type: "submit" } },
-                  [_vm._v("Inscription")]
+                  { staticClass: "btn btn-primary", attrs: { type: "submit" } },
+                  [_vm._v("Submit")]
                 )
               ]
             )

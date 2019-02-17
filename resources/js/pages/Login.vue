@@ -13,7 +13,7 @@
                                placeholder="user@example.com" v-model="email" required>
                     </div>
                     <div class="form-group">
-                        <label for="password">Pasword</label>
+                        <label for="password">Password</label>
                         <input type="password" id="password" class="form-control" v-model="password" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Log in</button>
@@ -37,8 +37,8 @@
         methods: {
             login() {
                 // get the redirect object
-                var redirect = this.$auth.redirect()
-                var app = this
+                let redirect = this.$auth.redirect();
+                let app = this;
                 this.$auth.login({
                     params: {
                         email: app.email,
@@ -46,7 +46,7 @@
                     },
                     success: function() {
                         // handle redirection
-                        const redirectTo = redirect ? redirect.from.name : this.$auth.user().role === 2 ? 'admin.dashboard' : 'dashboard'
+                        const redirectTo = redirect ? redirect.from.name : this.$auth.user().role === 2 ? 'admin.dashboard' : 'dashboard';
                         this.$router.push({name: redirectTo})
                     },
                     error: function() {

@@ -47,19 +47,30 @@ class GameController extends Controller
      */
     public function update(Request $request, Game $game)
     {
+        if ($game['winner']) {
+            return $game;
+        }
+
         if ($game['players']['turn'] != Auth::user()->id) {
             return $game;
         }
 
         $cell = $request->cell;
+
+        if (!is_null($game['state'][$cell])) {
+            return $game;
+        }
+
         $sign = $game->getSign(Auth::user()->id);
 
-        if($cell == $sign) {
+        if ($cell == $sign) {
             return $game;
         }
 
         $game->update(["state.$request->cell" => $game->getSign(Auth::user()->id)], ['upsert' => true]);
+
         $game->changeTurn(Auth::user()->id);
+        $game->checkWinner();
         $game->save();
 
         return $game;
