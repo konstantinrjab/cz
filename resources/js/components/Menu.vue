@@ -24,7 +24,7 @@
                 </ul>
                 <ul class="navbar-nav ml-auto">
                     <li v-if="$auth.check()">
-                        <a href="#" class="nav-link" @click.prevent="$auth.logout()">Logout</a>
+                        <a href="#" class="nav-link" @click.prevent="$auth.logout()">Logout ({{this.$auth.user().email}})</a>
                     </li>
                 </ul>
             </div>

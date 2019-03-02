@@ -3408,6 +3408,13 @@ __webpack_require__.r(__webpack_exports__);
         _this.games = response.data;
       });
     },
+    getButtonText: function getButtonText(game) {
+      if (game.players["0"] === this.$auth.user()._id || game.players["1"] === this.$auth.user()._id) {
+        return 'Continue';
+      }
+
+      return 'Join';
+    },
     joinGame: function joinGame(gameID) {
       var _this2 = this;
 
@@ -40270,7 +40277,11 @@ var render = function() {
                           }
                         }
                       },
-                      [_vm._v("Logout")]
+                      [
+                        _vm._v(
+                          "Logout (" + _vm._s(this.$auth.user().email) + ")"
+                        )
+                      ]
                     )
                   ])
                 : _vm._e()
@@ -40945,7 +40956,7 @@ var render = function() {
                         }
                       }
                     },
-                    [_vm._v("Join")]
+                    [_vm._v(_vm._s(_vm.getButtonText(game)))]
                   )
                 ])
               ])

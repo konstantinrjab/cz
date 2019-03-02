@@ -20,7 +20,7 @@
                             {{game.name}}
                         </td>
                         <td>
-                            <button class="btn btn-outline-primary" @click="joinGame(game._id)">Join</button>
+                            <button class="btn btn-outline-primary" @click="joinGame(game._id)">{{ getButtonText(game) }}</button>
                         </td>
                     </tr>
                     </tbody>
@@ -43,6 +43,13 @@
                             this.games = response.data;
                         }
                     )
+            },
+            getButtonText(game) {
+                if(game.players["0"] === this.$auth.user()._id ||  game.players["1"] === this.$auth.user()._id) {
+                    return 'Continue';
+                }
+
+                return 'Join';
             },
             joinGame(gameID) {
                 axios.post(`/games/${gameID}/join`)

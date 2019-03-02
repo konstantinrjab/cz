@@ -17,7 +17,17 @@ class GameController extends Controller
      */
     public function index()
     {
-        return Game::where('status', Game::NEED_PLAYERS)->get();
+        $result = Game::where('status', Game::NEED_PLAYERS)
+            ->orWhere(function ($q) {
+                $q->where('status', Game::STARTED)
+                    ->where(function ($q) {
+                        $q->where('players.' . Game::CROSS, Auth::user()->id)
+                            ->orWhere('players.' . Game::ZERO, Auth::user()->id);
+                    });
+            })
+            ->get();
+
+        return $result;
     }
 
     /**
@@ -67,7 +77,7 @@ class GameController extends Controller
             }
         }
 
-        return response()->json(['error' => 'Not authorized.'],403);
+        return response()->json(['error' => 'Not authorized.'], 403);
     }
 
     /**
