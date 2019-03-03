@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GameTurn;
 use App\Game;
 use App\Http\Requests\CreateGame;
 use Illuminate\Http\Request;
@@ -69,7 +70,6 @@ class GameController extends Controller
         if (!$game) {
             throw new NotFoundHttpException();
         }
-        $p = $game['players'];
 
         foreach ($game['players'] as $player) {
             if ($player == Auth::user()->id) {
@@ -116,6 +116,8 @@ class GameController extends Controller
         $game->changeTurn(Auth::user()->id);
         $game->checkWinner();
         $game->save();
+
+        broadcast(new GameTurn($game))->toOthers();
 
         return $game;
     }

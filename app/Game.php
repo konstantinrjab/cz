@@ -52,11 +52,15 @@ class Game extends Eloquent
 
     public function checkWinner()
     {
+        if (!$this->checkCanContinue()) {
+            $this->endGame();
+        }
+
         foreach ($this->winningCombinations as $combination) {
             foreach ($combination as $position) {
                 if (!is_numeric($this['state'][$position])) {
                     $sign = null;
-                    $secondInRow = false;
+                    $secondInRow = null;
                     break;
                 }
 
@@ -67,7 +71,7 @@ class Game extends Eloquent
 
                 if ($sign != $this['state'][$position]) {
                     $sign = null;
-                    $secondInRow = false;
+                    $secondInRow = null;
                     break;
                 }
 
@@ -76,8 +80,35 @@ class Game extends Eloquent
                     continue;
                 }
 
-                $this->update(["winner" =>  $this['players'][$sign]]);
+                if ($secondInRow === true) {
+                    $this->endGame($this['players'][$sign]);
+                }
             }
         }
+    }
+
+    private function endGame($winnerID = null)
+    {
+        if ($winnerID) {
+            $this->update(["winner" => $winnerID]);
+        }
+        $this->update(["status" => self::ENDED]);
+    }
+
+    public function checkCanContinue()
+    {
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                for ($j = 0; $j < 3; $j++) {
+                    if ($this['state'][$i . $j] === null) {
+                        throw new \Exception('');
+                    }
+                }
+            }
+        } catch (\Exception $exception) {
+            return true;
+        }
+
+        return false;
     }
 }
