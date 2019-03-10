@@ -61,9 +61,16 @@
                 } else {
                     this.statusIndicator = 'You lose';
                 }
+            },
+            listen() {
+                Echo.channel('game.' + this.post.id)
+                    .listen('GameTurn', (game) => {
+                        this.renderState(game)
+                    });
             }
         },
         mounted() {
+            this.listen();
             this.getGame()
         }
     }
