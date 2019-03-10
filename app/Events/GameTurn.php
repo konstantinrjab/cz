@@ -6,11 +6,8 @@ use App\Game;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class GameTurn implements ShouldBroadcastNow
 {
@@ -21,6 +18,7 @@ class GameTurn implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      *
+     * @param Game $game
      * @return void
      */
     public function __construct(Game $game)

@@ -49,7 +49,8 @@
                         const redirectTo = redirect ? redirect.from.name : this.$auth.user().role === 2 ? 'admin.dashboard' : 'dashboard';
                         this.$router.push({name: redirectTo})
                     },
-                    error: function() {
+                    error: function(res) {
+                        console.log(res);
                         app.has_error = true
                     },
                     rememberMe: true,

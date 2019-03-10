@@ -29,6 +29,7 @@
         "es6-promise": "^4.2.6",
         "laravel-echo": "^1.5.3",
         "pusher": "^2.2.0",
+        "pusher-js": "^4.4.0",
         "vue-axios": "^2.1.4",
         "vue-router": "^3.0.2"
     }

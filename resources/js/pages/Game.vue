@@ -63,7 +63,7 @@
                 }
             },
             listen() {
-                Echo.channel('game.' + this.post.id)
+                Echo.channel('game.' + this.game._id)
                     .listen('GameTurn', (game) => {
                         this.renderState(game)
                     });
