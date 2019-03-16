@@ -49,7 +49,7 @@ class GameController extends Controller
         $players->{0} = null;
 
         return Game::create([
-            'status'   => 2,
+            'status'   => Game::NEED_PLAYERS,
             'name'     => $request->name,
             'password' => $request->password,
             'winner'   => null,
@@ -122,35 +122,29 @@ class GameController extends Controller
         return $game;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
-
     public function join(Request $request, Game $game)
     {
-        if (empty($game['players'][Game::ZERO])) {
-            $game->update(["players." . Game::ZERO => Auth::user()->id]);
-        }
-
-        if (!empty($game['players'][Game::CROSS]) && !empty($game['players'][Game::ZERO])) {
-            $game->update(["status" => Game::STARTED]);
-        }
-
-        if ($game['players'][Game::CROSS] == Auth::user()->id or $game['players'][Game::ZERO] == Auth::user()->id) {
-            return $game;
-        }
-
-        if (!empty($game['players'][Game::CROSS]) && !empty($game['players'][Game::ZERO])) {
+        if ($game->status !== Game::NEED_PLAYERS) {
             return response('Game already started', 403);
         }
 
-        return $game;
+        $sign = null;
+
+        if (empty($game['players'][Game::CROSS])) {
+            $sign = Game::CROSS;
+        }
+        if (empty($game['players'][Game::ZERO])) {
+            $sign = Game::ZERO;
+        }
+
+        if (!is_null($sign)) {
+            $game->update(["players." . $sign => Auth::user()->id]);
+            $game->update(["status" => Game::STARTED]);
+            broadcast(new GameTurn($game))->toOthers();
+
+            return $game;
+        }
+
+        return false;
     }
 }
