@@ -124,6 +124,11 @@ class GameController extends Controller
 
     public function join(Request $request, Game $game)
     {
+        if ($game['players'][Game::CROSS] == Auth::user()->id
+            or $game['players'][Game::ZERO] == Auth::user()->id) {
+            return $game;
+        }
+
         if ($game->status !== Game::NEED_PLAYERS) {
             return response('Game already started', 403);
         }

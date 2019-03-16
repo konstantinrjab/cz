@@ -26,6 +26,11 @@ class GameTurn implements ShouldBroadcastNow
         $this->game = $game;
     }
 
+    public function broadcastAs()
+    {
+        return 'GameTurn';
+    }
+
     /**
      * Get the channels the event should broadcast on.
      *
@@ -33,6 +38,6 @@ class GameTurn implements ShouldBroadcastNow
      */
     public function broadcastOn()
     {
-        return new Channel('game.'.$this->game->id);
+        return new Channel('game.'.$this->game->_id);
     }
 }

@@ -16,12 +16,14 @@
         data() {
             return {
                 statusIndicator: "",
-                game: {}
+                game: {},
+                socketListen: false
             }
         },
         methods: {
-            renderState(data) {
-                $.each(data.state, function (index, value) {
+            renderState() {
+                console.log(this.game);
+                $.each(this.game.state, function (index, value) {
                     if (value === 1) {
                         $('#' + index).addClass('cross')
                     }
@@ -29,8 +31,10 @@
                         $('#' + index).addClass('zero')
                     }
                 });
-                if (this.game.players.turn === this.$auth.user()._id && this.game.status === 3) {
+                if (this.game.players.turn === this.$auth.user()._id) {
                     this.statusIndicator = 'You turn';
+                } else {
+                    this.statusIndicator = 'Waiting...';
                 }
                 this.checkWinner()
             },
@@ -38,7 +42,8 @@
                 axios.put(`/games/${this.game._id}`, {
                     cell: event.target.id,
                 }).then((response) => {
-                        this.renderState(response.data)
+                        this.game = response.data;
+                        this.renderState()
                     }
                 )
             },
@@ -46,7 +51,10 @@
                 axios.get(`/games/${this.$route.params.id}`)
                     .then((response) => {
                             this.game = response.data;
-                            this.renderState(response.data);
+                            if (!this.socketListen) {
+                                this.listen();
+                            }
+                            this.renderState();
                         }
                     ).catch(error => {
                     this.$router.push(`/404`)
@@ -56,20 +64,23 @@
                 if (!this.game['winner']) return;
 
                 if (this.game['winner'] === this.$auth.user()._id) {
-                    this.statusIndicator = 'You win';
+                    this.statusIndicator = 'You win!';
                 } else {
                     this.statusIndicator = 'You lose';
                 }
             },
             listen() {
+                this.socketListen = true;
+
                 Echo.channel('game.' + this.game._id)
-                    .listen('GameTurn', (game) => {
-                        this.renderState(game)
+                    .listen('.GameTurn', (game) => {
+                        console.log('received');
+                        this.game = game.game;
+                        this.renderState()
                     });
             }
         },
         mounted() {
-            this.listen();
             this.getGame()
         }
     }
