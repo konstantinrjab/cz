@@ -5,7 +5,6 @@
             <div class="card-body">
                 <div class="form-group">
                     <router-link to="/games/create" class="btn btn-success form-control">Create New Game</router-link>
-
                 </div>
                 <table class="table">
                     <thead>
@@ -20,7 +19,9 @@
                             {{game.name}}
                         </td>
                         <td>
-                            <button class="btn btn-outline-primary" @click="joinGame(game._id)">{{ getButtonText(game) }}</button>
+                            <button class="btn btn-outline-primary" @click="joinGame(game._id)">{{ getButtonText(game)
+                                }}
+                            </button>
                         </td>
                     </tr>
                     </tbody>
@@ -45,7 +46,7 @@
                     )
             },
             getButtonText(game) {
-                if(game.players["0"] === this.$auth.user()._id ||  game.players["1"] === this.$auth.user()._id) {
+                if (game.players["0"] === this.$auth.user()._id || game.players["1"] === this.$auth.user()._id) {
                     return 'Continue';
                 }
 
@@ -54,10 +55,9 @@
             joinGame(gameID) {
                 axios.post(`/games/${gameID}/join`)
                     .then((response) => {
-                        this.$router.push(`/games/${response.data._id}`)
+                            this.$router.push(`/games/${response.data._id}`)
                         }
                     ).catch((error) => {
-                    console.log(error);
                 });
             },
         },

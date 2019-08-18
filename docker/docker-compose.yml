@@ -42,7 +42,5 @@ services:
 #    volumes:
 #      - ../:/app
 #      - ../storage/logs:/root/.npm/_logs/
-#    ports:
-#      - "3000:3000"
 volumes:
   mongodb:

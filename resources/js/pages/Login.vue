@@ -50,7 +50,6 @@
                         this.$router.push({name: redirectTo})
                     },
                     error: function(res) {
-                        console.log(res);
                         app.has_error = true
                     },
                     rememberMe: true,

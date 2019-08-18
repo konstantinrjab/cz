@@ -22,7 +22,6 @@
         },
         methods: {
             renderState() {
-                console.log(this.game);
                 $.each(this.game.state, function (index, value) {
                     if (value === 1) {
                         $('#' + index).addClass('cross')
@@ -74,7 +73,6 @@
 
                 Echo.channel('game.' + this.game._id)
                     .listen('.GameTurn', (game) => {
-                        console.log('received');
                         this.game = game.game;
                         this.renderState()
                     });
