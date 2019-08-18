@@ -41,7 +41,7 @@ services:
 #      context: ./node
 #    volumes:
 #      - ../:/app
-#      - ../storage/logs/node:/root/.npm/_logs/
+#      - ../storage/logs:/root/.npm/_logs/
 #    ports:
 #      - "3000:3000"
 volumes:
