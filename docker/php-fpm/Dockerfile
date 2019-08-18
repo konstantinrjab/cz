@@ -4,6 +4,8 @@ RUN apk add --no-cache $PHPIZE_DEPS \
     && pecl install xdebug-2.7.0 \
     && docker-php-ext-enable xdebug
 
+RUN apk add libressl-dev
+
 RUN pecl install mongodb \
     && docker-php-ext-enable mongodb
 

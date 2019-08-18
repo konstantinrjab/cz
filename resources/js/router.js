@@ -1,5 +1,5 @@
 import VueRouter from 'vue-router'
-// Pages
+
 import Home from './pages/Home'
 import Register from './pages/Register'
 import Login from './pages/Login'
@@ -8,7 +8,7 @@ import AdminDashboard from './pages/admin/Dashboard'
 import CreateGame from './pages/CreateGame'
 import Game from './pages/Game'
 import PageNotFound from './pages/404'
-// Routes
+
 const routes = [
     {
         path: '/',
