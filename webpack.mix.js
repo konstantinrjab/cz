@@ -21,5 +21,8 @@ mix.webpackConfig({
         fs: 'empty',
         net: 'empty',
         tls: 'empty'
+    },
+    watchOptions: {
+        ignored: /node_modules/
     }
 });

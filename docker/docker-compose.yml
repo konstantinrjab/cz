@@ -33,3 +33,12 @@ services:
       MONGO_INITDB_DATABASE: cz
       ME_CONFIG_MONGODB_ADMINUSERNAME: user
       ME_CONFIG_MONGODB_ADMINPASSWORD: secret
+  node:
+    container_name: node
+    build:
+      context: ./node
+    volumes:
+      - ../:/app
+      - ../storage/logs/node:/root/.npm/_logs/
+    ports:
+      - "3000:3000"
