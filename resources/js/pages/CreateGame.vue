@@ -34,13 +34,14 @@
             create() {
                 axios.post(`/games`, {
                     name: this.name,
+                    password: this.password,
                 })
                     .then((response) => {
-                        this.$router.push(`/games/${response.data._id}`)
+                            this.$router.push(`/games/${response.data._id}`)
                         }
                     )
                     .catch((error) => {
-                        this.errors = error.response.data.errors;
+                            this.errors = error.response.data.errors;
                         }
                     );
             }

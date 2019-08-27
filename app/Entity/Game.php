@@ -7,13 +7,12 @@ use Jenssegers\Mongodb\Eloquent\Model;
 
 class Game extends Model
 {
-    const CREATED = 1;
-    const NEED_PLAYERS = 2;
-    const STARTED = 3;
-    const ENDED = 4;
+    public const NEED_PLAYERS = 2;
+    public const STARTED = 3;
+    public const ENDED = 4;
 
-    const CROSS = 1;
-    const ZERO = 0;
+    public const CROSS = 1;
+    public const ZERO = 0;
 
     protected $connection = 'mongodb';
     protected $collection = 'game';
@@ -31,14 +30,6 @@ class Game extends Model
         [21, 22, 23],
         [31, 32, 33]
     ];
-
-    public function getSign($userID): int
-    {
-        if ($this['players'][self::CROSS] == $userID) return self::CROSS;
-        if ($this['players'][self::ZERO] == $userID) return self::ZERO;
-
-        throw new \LogicException("Can't get your sign");
-    }
 
     public function changeTurn($userID): void
     {

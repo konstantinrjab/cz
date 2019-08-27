@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\GameTurn;
 use App\Entity\Game;
 use App\Http\Collections\GameCollection;
-use App\Http\Requests\CreateGame;
+use App\Http\Requests\CreateGameRequest;
 use App\Http\Services\GameService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,81 +28,40 @@ class GameController extends Controller
         return $result;
     }
 
-    public function store(CreateGame $request): Game
+    public function store(CreateGameRequest $request): Game
     {
         $game = $this->gameService->createGame($request->get('name'), $request->get('password'));
 
         return $game;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function show(string $gameId): Game
     {
-        $game = Game::find($id);
+        $playerId = Auth::user()->getAuthIdentifier();
+        $game = $this->gameService->getByPlayerId($gameId, $playerId);
         if (!$game) {
             throw new NotFoundHttpException();
         }
 
-        foreach ($game['players'] as $player) {
-            if ($player == Auth::user()->id) {
-                return $game;
-            }
-        }
-
-        return response()->json(['error' => 'Not authorized.'], 403);
+        return $game;
     }
 
-    /**
-     * @param Request $request
-     * @param Game $game
-     * @return Game
-     */
-    public function update(Request $request, Game $game)
+    public function update(Request $request, Game $game): Game
     {
-        if ($game['status'] !== Game::STARTED) {
-            return $game;
-        }
+        $userId = Auth::user()->getAuthIdentifier();
 
-        if ($game['winner']) {
-            return $game;
-        }
-
-        if ($game['players']['turn'] != Auth::user()->id) {
-            return $game;
-        }
-
-        $cell = $request->cell;
-
-        if (!is_null($game['state'][$cell])) {
-            return $game;
-        }
-
-        $sign = $game->getSign(Auth::user()->id);
-
-        if ($cell == $sign) {
-            return $game;
-        }
-
-        $game->update(["state.$request->cell" => $game->getSign(Auth::user()->id)]);
-
-        $game->changeTurn(Auth::user()->id);
-        $game->checkWinner();
-        $game->save();
+        $this->gameService->update($request, $game, $userId);
 
         broadcast(new GameTurn($game))->toOthers();
 
         return $game;
     }
 
-    public function join(Request $request, Game $game)
+    public function join(Game $game): Game
     {
-        if ($game['players'][Game::CROSS] == Auth::user()->id
-            or $game['players'][Game::ZERO] == Auth::user()->id) {
+        $userId = Auth::user()->getAuthIdentifier();
+
+        if ($game['players'][Game::CROSS] == $userId || $game['players'][Game::ZERO] == $userId) {
             return $game;
         }
 
@@ -120,13 +79,13 @@ class GameController extends Controller
         }
 
         if (!is_null($sign)) {
-            $game->update(["players." . $sign => Auth::user()->id]);
+            $game->update(["players.".$sign => $userId]);
             $game->update(["status" => Game::STARTED]);
             broadcast(new GameTurn($game))->toOthers();
 
             return $game;
         }
 
-        return false;
+        throw new \Exception();
     }
 }
