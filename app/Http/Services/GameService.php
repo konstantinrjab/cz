@@ -12,6 +12,17 @@ use Exception;
 
 class GameService
 {
+    private const WINNING_COMBINATIONS = [
+        [11, 12, 13],
+        [11, 22, 33],
+        [11, 21, 31],
+        [12, 22, 32],
+        [13, 22, 31],
+        [13, 23, 33],
+        [21, 22, 23],
+        [31, 32, 33]
+    ];
+
     public function getAbleToConnectList(): GameCollection
     {
         $query = Game::query()->where('status', Game::NEED_PLAYERS)
@@ -43,7 +54,7 @@ class GameService
             'password' => $password,
             'winner'   => null,
             'players'  => $players,
-            'state'  => $state,
+            'state'    => $state,
         ]);
 
         $game->save();
@@ -51,21 +62,21 @@ class GameService
         return $game;
     }
 
-    public function getSign(Game $game, string $userID): int
+    public function getSign(Game $game, string $playerId): int
     {
-        if ($game['players'][Game::CROSS] == $userID) return Game::CROSS;
-        if ($game['players'][Game::ZERO] == $userID) return Game::ZERO;
+        if ($game['players'][Game::CROSS] == $playerId) return Game::CROSS;
+        if ($game['players'][Game::ZERO] == $playerId) return Game::ZERO;
 
         throw new Exception("Can't get sign");
     }
 
-    public function update(Request $request, Game $game, string $userId): void
+    public function update(Request $request, Game $game, string $playerId): void
     {
         if ($game['status'] !== Game::STARTED) {
             return;
         }
 
-        if ($game['players']['turn'] != $userId) {
+        if ($game['players']['turn'] != $playerId) {
             return;
         }
 
@@ -75,7 +86,7 @@ class GameService
             return;
         }
 
-        $sign = $this->getSign($game, $userId);
+        $sign = $this->getSign($game, $playerId);
 
         if ($cell == $sign) {
             return;
@@ -83,8 +94,8 @@ class GameService
 
         $game->update(["state.$request->cell" => $sign]);
 
-        $game->changeTurn($userId);
-        $game->checkWinner();
+        $this->changeTurn($game, $playerId);
+        $this->checkWinner($game);
         $game->save();
     }
 
@@ -116,5 +127,101 @@ class GameService
         $players->{0} = null;
 
         return $players;
+    }
+
+    private function changeTurn(Game $game, string $userID): void
+    {
+        if ($game['players'][Game::CROSS] == $userID) {
+            $nexTurnUserID = $game['players'][Game::ZERO];
+        }
+        if ($game['players'][Game::ZERO] == $userID) {
+            $nexTurnUserID = $game['players'][Game::CROSS];
+        }
+
+        $game->update(["players.turn" => $nexTurnUserID]);
+    }
+
+    private function checkWinner(Game $game): void
+    {
+        if ($this->isAllFieldsFilled($game)) {
+            $this->finishGame(null);
+        }
+
+        foreach (self::WINNING_COMBINATIONS as $combination) {
+            foreach ($combination as $position) {
+                if (!is_numeric($this['state'][$position])) {
+                    $sign = null;
+                    $secondInRow = null;
+                    break;
+                }
+
+                if (!isset($sign)) {
+                    $sign = $this['state'][$position];
+                    continue;
+                }
+
+                if ($sign != $this['state'][$position]) {
+                    $sign = null;
+                    $secondInRow = null;
+                    break;
+                }
+
+                if (!isset($secondInRow)) {
+                    $secondInRow = true;
+                    continue;
+                }
+
+                if ($secondInRow === true) {
+                    $this->endGame($this['players'][$sign]);
+                }
+            }
+        }
+    }
+
+    private function isAllFieldsFilled(Game $game): bool
+    {
+        for ($rowNumber = 0; $rowNumber < 3; $rowNumber++) {
+            for ($columnNumber = 0; $columnNumber < 3; $columnNumber++) {
+                if ($game['state'][$rowNumber.$columnNumber] === null) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function finishGame(Game $game, ?string $winnerID): void
+    {
+        if ($winnerID) {
+            $game->update(["winner" => $winnerID]);
+        }
+        $game->update(["status" => Game::ENDED]);
+    }
+
+    public function createSign(Game $game): int
+    {
+        if (empty($game['players'][Game::CROSS])) {
+            return Game::CROSS;
+        }
+        if (empty($game['players'][Game::ZERO])) {
+            return Game::ZERO;
+        }
+
+        throw new \Exception('cannot create sign for game: '.$game->_id);
+    }
+
+    public function isAbleToJoinGame(Game $game): bool
+    {
+        if ($game->status == Game::NEED_PLAYERS) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function alreadyJoined(Game $game, string $playerId): bool
+    {
+        return $game['players'][Game::CROSS] == $playerId || $game['players'][Game::ZERO] == $playerId;
     }
 }

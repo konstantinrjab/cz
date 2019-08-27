@@ -8,6 +8,7 @@ use App\Http\Collections\GameCollection;
 use App\Http\Requests\CreateGameRequest;
 use App\Http\Services\GameService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -48,9 +49,9 @@ class GameController extends Controller
 
     public function update(Request $request, Game $game): Game
     {
-        $userId = Auth::user()->getAuthIdentifier();
+        $playerId = Auth::user()->getAuthIdentifier();
 
-        $this->gameService->update($request, $game, $userId);
+        $this->gameService->update($request, $game, $playerId);
 
         broadcast(new GameTurn($game))->toOthers();
 
@@ -59,33 +60,22 @@ class GameController extends Controller
 
     public function join(Game $game): Game
     {
-        $userId = Auth::user()->getAuthIdentifier();
+        $playerId = Auth::user()->getAuthIdentifier();
 
-        if ($game['players'][Game::CROSS] == $userId || $game['players'][Game::ZERO] == $userId) {
+        if ($this->gameService->isAbleToJoinGame($game)) {
+            return response()->json('Unable to join game', Response::HTTP_FORBIDDEN);
+        }
+
+        if ($this->gameService->alreadyJoined($game, $playerId)) {
             return $game;
         }
 
-        if ($game->status !== Game::NEED_PLAYERS) {
-            return response('Game already started', 403);
-        }
+        $sign = $this->gameService->createSign($game);
 
-        $sign = null;
+        $game->update(["players.".$sign => $playerId]);
+        $game->update(["status" => Game::STARTED]);
+        broadcast(new GameTurn($game))->toOthers();
 
-        if (empty($game['players'][Game::CROSS])) {
-            $sign = Game::CROSS;
-        }
-        if (empty($game['players'][Game::ZERO])) {
-            $sign = Game::ZERO;
-        }
-
-        if (!is_null($sign)) {
-            $game->update(["players.".$sign => $userId]);
-            $game->update(["status" => Game::STARTED]);
-            broadcast(new GameTurn($game))->toOthers();
-
-            return $game;
-        }
-
-        throw new \Exception();
+        return $game;
     }
 }
