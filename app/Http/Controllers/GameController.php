@@ -4,38 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Events\GameTurn;
 use App\Game;
+use App\Http\Collections\GameCollection;
 use App\Http\Requests\CreateGame;
+use App\Http\Services\GameService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class GameController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    /** @var GameService $gameService */
+    private $gameService;
+
+    public function __construct(GameService $gameService)
     {
-        $result = Game::where('status', Game::NEED_PLAYERS)
-            ->orWhere(function ($q) {
-                $q->where('status', Game::STARTED)
-                    ->where(function ($q) {
-                        $q->where('players.' . Game::CROSS, Auth::user()->id)
-                            ->orWhere('players.' . Game::ZERO, Auth::user()->id);
-                    });
-            })
-            ->get();
+        $this->gameService = $gameService;
+    }
+
+    public function index(): GameCollection
+    {
+        $result = $this->gameService->getAbleToConnectList();
 
         return $result;
     }
 
-    /**
-     * @param CreateGame $request
-     * @return mixed
-     */
-    public function store(CreateGame $request)
+    public function store(CreateGame $request): Model
     {
         $state = new \StdClass();
         for ($i = 1; $i <= 3; $i++) {
@@ -44,11 +38,13 @@ class GameController extends Controller
             }
         }
         $players = new \StdClass();
-        $players->turn = Auth::user()->id;
-        $players->{1} = Auth::user()->id;
+        $userId = Auth::user()->getAuthIdentifier();
+
+        $players->turn = $userId;
+        $players->{1} = $userId;
         $players->{0} = null;
 
-        return Game::create([
+        return Game::query()->create([
             'status'   => Game::NEED_PLAYERS,
             'name'     => $request->name,
             'password' => $request->password,

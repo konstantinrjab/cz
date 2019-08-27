@@ -2,9 +2,10 @@
 
 namespace App;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use App\Http\Collections\GameCollection;
+use Jenssegers\Mongodb\Eloquent\Model;
 
-class Game extends Eloquent
+class Game extends Model
 {
     const CREATED = 1;
     const NEED_PLAYERS = 2;
@@ -31,14 +32,15 @@ class Game extends Eloquent
         [31, 32, 33]
     ];
 
-    public function getSign($userID)
+    public function getSign($userID): int
     {
         if ($this['players'][self::CROSS] == $userID) return self::CROSS;
         if ($this['players'][self::ZERO] == $userID) return self::ZERO;
+
         throw new \LogicException("Can't get your sign");
     }
 
-    public function changeTurn($userID)
+    public function changeTurn($userID): void
     {
         if ($this['players'][self::CROSS] == $userID) {
             $nexTurnUserID = $this['players'][self::ZERO];
@@ -50,7 +52,7 @@ class Game extends Eloquent
         $this->update(["players.turn" => $nexTurnUserID]);
     }
 
-    public function checkWinner()
+    public function checkWinner(): void
     {
         if (!$this->checkCanContinue()) {
             $this->endGame();
@@ -87,7 +89,7 @@ class Game extends Eloquent
         }
     }
 
-    private function endGame($winnerID = null)
+    private function endGame($winnerID = null): void
     {
         if ($winnerID) {
             $this->update(["winner" => $winnerID]);
@@ -95,7 +97,7 @@ class Game extends Eloquent
         $this->update(["status" => self::ENDED]);
     }
 
-    public function checkCanContinue()
+    public function checkCanContinue(): bool
     {
         try {
             for ($i = 0; $i < 3; $i++) {
@@ -110,5 +112,10 @@ class Game extends Eloquent
         }
 
         return false;
+    }
+
+    public function newCollection(array $models = []): GameCollection
+    {
+        return new GameCollection($models);
     }
 }
