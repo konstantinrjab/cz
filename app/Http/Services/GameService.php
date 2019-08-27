@@ -2,7 +2,8 @@
 
 namespace App\Http\Services;
 
-use App\Game;
+use App\Entity\Game;
+use App\Entity\GameState;
 use App\Http\Collections\GameCollection;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Builder;
@@ -25,5 +26,26 @@ class GameService
         $gameCollection = $query->get();
 
         return $gameCollection;
+    }
+
+    public function createGame(string $name, string $password): Game
+    {
+        $state = new GameState();
+
+        $players = new \StdClass();
+        $userId = Auth::user()->getAuthIdentifier();
+
+        $players->turn = $userId;
+        $players->{1} = $userId;
+        $players->{0} = null;
+
+        return Game::query()->create([
+            'status'   => Game::NEED_PLAYERS,
+            'name'     => $name,
+            'password' => $password,
+            'winner'   => null,
+            'players'  => $players,
+            'state'    => $state,
+        ]);
     }
 }

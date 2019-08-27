@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Events\GameTurn;
-use App\Game;
+use App\Entity\Game;
 use App\Http\Collections\GameCollection;
 use App\Http\Requests\CreateGame;
 use App\Http\Services\GameService;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -29,29 +28,11 @@ class GameController extends Controller
         return $result;
     }
 
-    public function store(CreateGame $request): Model
+    public function store(CreateGame $request): Game
     {
-        $state = new \StdClass();
-        for ($i = 1; $i <= 3; $i++) {
-            for ($j = 1; $j <= 3; $j++) {
-                $state->{$i . $j} = null;
-            }
-        }
-        $players = new \StdClass();
-        $userId = Auth::user()->getAuthIdentifier();
+        $game = $this->gameService->createGame($request->get('name'), $request->get('password'));
 
-        $players->turn = $userId;
-        $players->{1} = $userId;
-        $players->{0} = null;
-
-        return Game::query()->create([
-            'status'   => Game::NEED_PLAYERS,
-            'name'     => $request->name,
-            'password' => $request->password,
-            'winner'   => null,
-            'players'  => $players,
-            'state'    => $state,
-        ]);
+        return $game;
     }
 
     /**

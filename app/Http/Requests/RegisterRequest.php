@@ -4,18 +4,18 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateGame extends FormRequest
+class RegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => 'string|min:3|unique:name',
-            'password' => 'string|min:3'
+            'email'    => 'required|email|unique:users',
+            'password' => 'required|min:3|confirmed',
         ];
     }
 }

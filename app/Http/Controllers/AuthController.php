@@ -2,72 +2,64 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
+use App\Entity\User;
+use App\Http\Requests\RegisterRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\JWTAuth;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $v = Validator::make($request->all(), [
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:3|confirmed',
-        ]);
-        if ($v->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $v->errors()
-            ], 422);
-        }
         $user = new User;
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->save();
 
-        return response()->json(['status' => 'success'], 200);
+        return response()->json(['status' => 'success'], JsonResponse::HTTP_OK);
     }
 
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
         $credentials = $request->only('email', 'password');
         if ($token = $this->guard()->attempt($credentials)) {
-            return response()->json(['status' => 'success'], 200)->header('Authorization', $token);
+            return response()->json(['status' => 'success'], JsonResponse::HTTP_OK)
+                ->header('Authorization', $token);
         }
 
-        return response()->json(['error' => 'login_error'], 401);
+        return response()->json(['error' => 'login_error'], JsonResponse::HTTP_UNAUTHORIZED);
     }
 
-    public function logout()
+    public function logout(): JsonResponse
     {
         $this->guard()->logout();
 
         return response()->json([
             'status' => 'success',
             'msg'    => 'Logged out Successfully.'
-        ], 200);
+        ], JsonResponse::HTTP_OK);
     }
 
-    public function user(Request $request)
+    public function user(): JsonResponse
     {
-        $user = User::find(Auth::user()->id);
+        $user = User::query()->find(Auth::user()->getAuthIdentifier());
+
         return response()->json([
             'status' => 'success',
             'data'   => $user
         ]);
     }
 
-    public function refresh()
+    public function refresh(): JsonResponse
     {
         if ($token = $this->guard()->refresh()) {
             return response()
-                ->json(['status' => 'success'], 200)
+                ->json(['status' => 'success'], JsonResponse::HTTP_OK)
                 ->header('Authorization', $token);
         }
 
-        return response()->json(['error' => 'refresh_token_error'], 401);
+        return response()->json(['error' => 'refresh_token_error'], JsonResponse::HTTP_UNAUTHORIZED);
     }
 
     private function guard()

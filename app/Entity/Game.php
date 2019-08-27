@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Entity;
 
 use App\Http\Collections\GameCollection;
 use Jenssegers\Mongodb\Eloquent\Model;
