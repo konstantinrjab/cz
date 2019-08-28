@@ -5,6 +5,13 @@ namespace App\Entity;
 use App\Http\Collections\GameCollection;
 use Jenssegers\Mongodb\Eloquent\Model;
 
+/**
+ * Class Game
+ * @package App\Entity
+ *
+ * @property int $status
+ * @property string $password
+ */
 class Game extends Model
 {
     public const NEED_PLAYERS = 2;

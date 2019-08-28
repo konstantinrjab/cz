@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Builder;
 use StdClass;
 use Exception;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class GameService
 {
@@ -199,18 +200,6 @@ class GameService
         $game->update(["status" => Game::ENDED]);
     }
 
-    public function createSign(Game $game): int
-    {
-        if (empty($game['players'][Game::CROSS])) {
-            return Game::CROSS;
-        }
-        if (empty($game['players'][Game::ZERO])) {
-            return Game::ZERO;
-        }
-
-        throw new \Exception('cannot create sign for game: '.$game->_id);
-    }
-
     public function isAbleToJoinGame(Game $game): bool
     {
         if ($game->status == Game::NEED_PLAYERS) {
@@ -220,8 +209,34 @@ class GameService
         return false;
     }
 
-    public function alreadyJoined(Game $game, string $playerId): bool
+    public function joinGame(Game $game, string $playerId): void
+    {
+        if ($this->isAbleToJoinGame($game)) {
+            throw new BadRequestHttpException('Unable to join game');
+        }
+        if ($this->alreadyJoined($game, $playerId)) {
+            return;
+        }
+        $sign = $this->createSign($game);
+
+        $game->update(["players.".$sign => $playerId]);
+        $game->update(["status" => Game::STARTED]);
+    }
+
+    private function alreadyJoined(Game $game, string $playerId): bool
     {
         return $game['players'][Game::CROSS] == $playerId || $game['players'][Game::ZERO] == $playerId;
+    }
+
+    private function createSign(Game $game): int
+    {
+        if (empty($game['players'][Game::CROSS])) {
+            return Game::CROSS;
+        }
+        if (empty($game['players'][Game::ZERO])) {
+            return Game::ZERO;
+        }
+
+        throw new \Exception('cannot create sign for game: '.$game->_id);
     }
 }

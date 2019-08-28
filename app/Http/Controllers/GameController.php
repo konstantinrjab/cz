@@ -62,18 +62,7 @@ class GameController extends Controller
     {
         $playerId = Auth::user()->getAuthIdentifier();
 
-        if ($this->gameService->isAbleToJoinGame($game)) {
-            return response()->json('Unable to join game', Response::HTTP_FORBIDDEN);
-        }
-
-        if ($this->gameService->alreadyJoined($game, $playerId)) {
-            return $game;
-        }
-
-        $sign = $this->gameService->createSign($game);
-
-        $game->update(["players.".$sign => $playerId]);
-        $game->update(["status" => Game::STARTED]);
+        $this->gameService->joinGame($game, $playerId);
         broadcast(new GameTurn($game))->toOthers();
 
         return $game;

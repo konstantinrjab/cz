@@ -6,6 +6,11 @@ use Illuminate\Notifications\Notifiable;
 use Jenssegers\Mongodb\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
+/**
+ * @property string $email
+ * @property string $name
+ * @property string $password
+ */
 class User extends Authenticatable implements JWTSubject
 {
     use Notifiable;
