@@ -2,37 +2,28 @@
 
 namespace App\Http\Services;
 
+use App\Entity\Collection\CellCollection;
+use App\Entity\Collection\GameCollection;
 use App\Entity\Game;
-use App\Http\Collections\GameCollection;
-use Illuminate\Http\Request;
+use App\Entity\GameCell;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Jenssegers\Mongodb\Eloquent\Builder;
-use StdClass;
 use Exception;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class GameService
 {
-    private const WINNING_COMBINATIONS = [
-        [11, 12, 13],
-        [11, 22, 33],
-        [11, 21, 31],
-        [12, 22, 32],
-        [13, 22, 31],
-        [13, 23, 33],
-        [21, 22, 23],
-        [31, 32, 33]
-    ];
-
-    public function getAbleToConnectList(): GameCollection
+    public function getAbleToConnectGameList(): GameCollection
     {
-        $query = Game::query()->where('status', Game::NEED_PLAYERS)
-            ->orWhere(function (Builder $qb) {
-                $qb->where('status', Game::STARTED)
-                    ->where(function (Builder $qb) {
-                        $userId = Auth::user()->getAuthIdentifier();
-                        $qb->where('players.'.Game::CROSS, $userId)
-                            ->orWhere('players.'.Game::ZERO, $userId);
+        $playerId = Auth::user()->getAuthIdentifier();
+
+        $query = Game::query()->where('status', Game::STATUS_NEED_PLAYERS)
+            ->orWhere(function (Builder $qb) use ($playerId) {
+                $qb
+                    ->where('status', Game::STATUS_STARTED)
+                    ->where(function (Builder $qb) use ($playerId) {
+
+                        $qb->where('cross_player_id', $playerId)
+                            ->orWhere('zero_player_id', $playerId);
                     });
             });
 
@@ -44,56 +35,57 @@ class GameService
 
     public function createGame(string $name, ?string $password): Game
     {
-        $userId = Auth::user()->getAuthIdentifier();
+        $playerId = Auth::user()->getAuthIdentifier();
 
-        $state = $this->createState();
-        $players = $this->createPlayers($userId);
+        $cellCollection = $this->createCellCollection();
 
         $game = new Game([
-            'status'   => Game::NEED_PLAYERS,
-            'name'     => $name,
-            'password' => $password,
-            'winner'   => null,
-            'players'  => $players,
-            'state'    => $state,
+            'name'             => $name,
+            'status'           => Game::STATUS_NEED_PLAYERS,
+            'active_player_id' => $playerId,
+            'cross_player_id'  => $playerId,
+            'zero_player_id'   => null,
+            'cellCollection'   => $cellCollection,
         ]);
-
         $game->save();
 
         return $game;
     }
 
-    public function getSign(Game $game, string $playerId): int
+    public function getSignByPlayer(Game $game, string $playerId): string
     {
-        if ($game['players'][Game::CROSS] == $playerId) return Game::CROSS;
-        if ($game['players'][Game::ZERO] == $playerId) return Game::ZERO;
+        if ($game->cross_player_id == $playerId) {
+            return Game::CROSS;
+        }
+        if ($game->zero_player_id == $playerId) {
+            return Game::ZERO;
+        }
 
         throw new Exception("Can't get sign");
     }
 
-    public function update(Request $request, Game $game, string $playerId): void
+    public function update(Game $game, int $row, int $column, int $playerId): void
     {
-        if ($game['status'] !== Game::STARTED) {
+        if ($game->status !== Game::STATUS_STARTED) {
             return;
         }
 
-        if ($game['players']['turn'] != $playerId) {
+        if ($game->active_player_id != $playerId && false) {
             return;
         }
 
-        $cell = $request->cell;
-
-        if (!is_null($game['state'][$cell])) {
+        $gameCell = $game->cellCollection->getByRowAndColumn($row, $column);
+        if (!is_null($gameCell->value) && false) {
             return;
         }
 
-        $sign = $this->getSign($game, $playerId);
+        $sign = $this->getSignByPlayer($game, $playerId);
 
-        if ($cell == $sign) {
+        if ($gameCell->value == $sign && false) {
             return;
         }
 
-        $game->update(["state.$request->cell" => $sign]);
+        $game->cellCollection = $game->cellCollection->getWithUpdatedCellValue($row, $column, $sign);
 
         $this->changeTurn($game, $playerId);
         $this->checkWinner($game);
@@ -102,141 +94,102 @@ class GameService
 
     public function getByPlayerId(string $gameId, string $playerId): ?Game
     {
-        $game = Game::query()->find($gameId);
 //      TODO: filter by playerId
+        $game = Game::find($gameId);
 
         return $game;
     }
 
-    private function createState(): StdClass
+    private function createCellCollection(): CellCollection
     {
-        $state = new StdClass();
+        $collection = new CellCollection();
         for ($columnNumber = 1; $columnNumber <= 3; $columnNumber++) {
             for ($rowNumber = 1; $rowNumber <= 3; $rowNumber++) {
-                $state->{$columnNumber.$rowNumber} = null;
+                $cell = new GameCell($columnNumber, $rowNumber);
+                $collection->push($cell);
             }
         }
 
-        return $state;
+        return $collection;
     }
 
-    private function createPlayers(string $userId): StdClass
+    private function changeTurn(Game $game, string $playerId): void
     {
-        $players = new StdClass();
-        $players->turn = $userId;
-        $players->{1} = $userId;
-        $players->{0} = null;
-
-        return $players;
-    }
-
-    private function changeTurn(Game $game, string $userID): void
-    {
-        if ($game['players'][Game::CROSS] == $userID) {
-            $nexTurnUserID = $game['players'][Game::ZERO];
+        if ($game->cross_player_id == $playerId) {
+            $game->update(["active_player_id" => $game->zero_player_id]);
+        } elseif ($game->zero_player_id == $playerId) {
+            $game->update(["active_player_id" => $game->cross_player_id]);
+        } else {
+            throw new Exception('cannot change turn');
         }
-        if ($game['players'][Game::ZERO] == $userID) {
-            $nexTurnUserID = $game['players'][Game::CROSS];
-        }
-
-        $game->update(["players.turn" => $nexTurnUserID]);
     }
 
     private function checkWinner(Game $game): void
     {
-        if ($this->isAllFieldsFilled($game)) {
-            $this->finishGame(null);
+        $winnerValue = $game->cellCollection->getWinner();
+        if ($winnerValue) {
+            $this->finishGame($game, $this->getWinnerId($game, $winnerValue));
         }
-
-        foreach (self::WINNING_COMBINATIONS as $combination) {
-            foreach ($combination as $position) {
-                if (!is_numeric($this['state'][$position])) {
-                    $sign = null;
-                    $secondInRow = null;
-                    break;
-                }
-
-                if (!isset($sign)) {
-                    $sign = $this['state'][$position];
-                    continue;
-                }
-
-                if ($sign != $this['state'][$position]) {
-                    $sign = null;
-                    $secondInRow = null;
-                    break;
-                }
-
-                if (!isset($secondInRow)) {
-                    $secondInRow = true;
-                    continue;
-                }
-
-                if ($secondInRow === true) {
-                    $this->endGame($this['players'][$sign]);
-                }
-            }
+        if ($game->cellCollection->isAllCellsFilled()) {
+            $this->finishGame($game, null);
         }
     }
 
-    private function isAllFieldsFilled(Game $game): bool
+    private function getWinnerId(Game $game, string $winnerValue): int
     {
-        for ($rowNumber = 0; $rowNumber < 3; $rowNumber++) {
-            for ($columnNumber = 0; $columnNumber < 3; $columnNumber++) {
-                if ($game['state'][$rowNumber.$columnNumber] === null) {
-                    return false;
-                }
-            }
+        if ($winnerValue == Game::CROSS) {
+            return $game->cross_player_id;
+        } elseif ($winnerValue == Game::ZERO) {
+            return $game->zero_player_id;
+        } else {
+            throw new Exception('cannot change turn');
         }
-
-        return true;
     }
 
-    private function finishGame(Game $game, ?string $winnerID): void
+    private function finishGame(Game $game, ?int $winnerID): void
     {
         if ($winnerID) {
-            $game->update(["winner" => $winnerID]);
+            $game->update(["winner_id" => $winnerID]);
         }
-        $game->update(["status" => Game::ENDED]);
+        $game->update(["status" => Game::STATUS_ENDED]);
     }
 
-    public function isAbleToJoinGame(Game $game): bool
+    public function joinGame(Game $game, string $playerId): void
     {
-        if ($game->status == Game::NEED_PLAYERS) {
+        if ($this->alreadyJoined($game, $playerId)) {
+            return;
+        }
+        if (!$this->isAbleToJoinGame($game)) {
+            throw new Exception('Unable to join game');
+        }
+
+        $this->addPlayer($game, $playerId);
+        $game->status = Game::STATUS_STARTED;
+        $game->save();
+    }
+
+    private function isAbleToJoinGame(Game $game): bool
+    {
+        if ($game->status == Game::STATUS_NEED_PLAYERS) {
             return true;
         }
 
         return false;
     }
 
-    public function joinGame(Game $game, string $playerId): void
-    {
-        if ($this->isAbleToJoinGame($game)) {
-            throw new BadRequestHttpException('Unable to join game');
-        }
-        if ($this->alreadyJoined($game, $playerId)) {
-            return;
-        }
-        $sign = $this->createSign($game);
-
-        $game->update(["players.".$sign => $playerId]);
-        $game->update(["status" => Game::STARTED]);
-    }
-
     private function alreadyJoined(Game $game, string $playerId): bool
     {
-        return $game['players'][Game::CROSS] == $playerId || $game['players'][Game::ZERO] == $playerId;
+        return $game->cross_player_id == $playerId || $game->zero_player_id == $playerId;
     }
 
-    private function createSign(Game $game): int
+    private function addPlayer(Game $game, int $playerId): void
     {
-        if (empty($game['players'][Game::CROSS])) {
-            return Game::CROSS;
+        if (is_null($game->cross_player_id)) {
+            $game->cross_player_id = $playerId;
+        } elseif (is_null($game->zero_player_id)) {
+            $game->zero_player_id = $playerId;
+        } else {
+            throw new Exception('cannot create sign for game: '.$game->id);
         }
-        if (empty($game['players'][Game::ZERO])) {
-            return Game::ZERO;
-        }
-
-        throw new \Exception('cannot create sign for game: '.$game->_id);
     }
 }

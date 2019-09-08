@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\GameTurn;
+use App\Events\GameChangeStateEvent;
 use App\Entity\Game;
-use App\Http\Collections\GameCollection;
 use App\Http\Requests\CreateGameRequest;
+use App\Http\Requests\UpdateGameRequest;
+use App\Http\Services\GameRepresentationService;
 use App\Http\Services\GameService;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -17,26 +17,30 @@ class GameController extends Controller
     /** @var GameService $gameService */
     private $gameService;
 
-    public function __construct(GameService $gameService)
+    /** @var GameRepresentationService $representationService */
+    private $representationService;
+
+    public function __construct(GameService $gameService, GameRepresentationService $representationService)
     {
         $this->gameService = $gameService;
+        $this->representationService = $representationService;
     }
 
-    public function index(): GameCollection
+    public function index(): JsonResponse
     {
-        $result = $this->gameService->getAbleToConnectList();
+        $gameCollection = $this->gameService->getAbleToConnectGameList();
 
-        return $result;
+        return response()->json($this->representationService->getGameCollection($gameCollection));
     }
 
-    public function store(CreateGameRequest $request): Game
+    public function store(CreateGameRequest $request): JsonResponse
     {
         $game = $this->gameService->createGame($request->get('name'), $request->get('password'));
 
-        return $game;
+        return response()->json($this->representationService->getGame($game));
     }
 
-    public function show(string $gameId): Game
+    public function show(string $gameId): JsonResponse
     {
         $playerId = Auth::user()->getAuthIdentifier();
         $game = $this->gameService->getByPlayerId($gameId, $playerId);
@@ -44,27 +48,28 @@ class GameController extends Controller
             throw new NotFoundHttpException();
         }
 
-        return $game;
+        return response()->json($this->representationService->getGame($game));
     }
 
-    public function update(Request $request, Game $game): Game
+    public function update(UpdateGameRequest $request, Game $game): JsonResponse
     {
         $playerId = Auth::user()->getAuthIdentifier();
 
-        $this->gameService->update($request, $game, $playerId);
+        $this->gameService->update($game, $request->get('row'), $request->get('column'), $playerId);
 
-        broadcast(new GameTurn($game))->toOthers();
+        broadcast(new GameChangeStateEvent($game, $this->representationService))->toOthers();
 
-        return $game;
+        return response()->json($this->representationService->getGame($game));
     }
 
-    public function join(Game $game): Game
+    public function join(Game $game): JsonResponse
     {
         $playerId = Auth::user()->getAuthIdentifier();
 
         $this->gameService->joinGame($game, $playerId);
-        broadcast(new GameTurn($game))->toOthers();
 
-        return $game;
+        broadcast(new GameChangeStateEvent($game, $this->representationService))->toOthers();
+
+        return response()->json($this->representationService->getGame($game));
     }
 }

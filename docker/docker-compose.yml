@@ -2,7 +2,7 @@ version: '3'
 
 services:
   php-fpm:
-    container_name: php
+    container_name: cz_php
     build:
       context: ./php-fpm
     environment:
@@ -11,7 +11,7 @@ services:
     volumes:
       - ../:/var/www
   nginx:
-    container_name: nginx
+    container_name: cz_nginx
     build:
       context: ./nginx
     volumes:
@@ -24,23 +24,17 @@ services:
     ports:
       - "80:80"
       - "443:443"
-  mongo:
-    container_name: mongo
-    image: mongo
-    volumes:
-      - mongodb:/data/db
-    ports:
-      - "27017:27017"
+  mysql:
+    container_name: cz_mysql
+    image: mysql:5.7
     environment:
-      MONGO_INITDB_DATABASE: cz
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: secret
-#  node:
-#    container_name: node
-#    build:
-#      context: ./node
-#    volumes:
-#      - ../:/app
-#      - ../storage/logs:/root/.npm/_logs/
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'cz'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
+    volumes:
+      - cz_mysql:/var/lib/mysql
 volumes:
-  mongodb:
+  cz_mysql:

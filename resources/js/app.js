@@ -13,14 +13,12 @@ window.Vue = Vue;
 
 Vue.router = router;
 Vue.use(VueRouter);
-
 Vue.use(VueAxios, axios);
-
-axios.defaults.baseURL = '/api';
-
 Vue.use(VueAuth, auth);
 
 Vue.component('index', Index);
+axios.defaults.baseURL = '/api';
+
 const app = new Vue({
     el: '#app',
     router

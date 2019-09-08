@@ -1,8 +1,9 @@
 <template>
     <div class="">
         <div class="container">
-            <div class="row justify-content-center" v-for="n in 3">
-                <div class="col-4 cell" v-for="m in 3" @click="makeMove($event)" v-bind:id="''+n+m"></div>
+            <div class="row justify-content-center" v-for="rowNumber in 3">
+                <div class="col-4 cell" v-for="columnNumber in 3" @click="makeMove($event)"
+                     v-bind:id="rowNumber.toString()+columnNumber.toString()"></div>
             </div>
         </div>
         <div class="statusIndicator" v-if="statusIndicator">
@@ -21,31 +22,6 @@
             }
         },
         methods: {
-            renderState() {
-                $.each(this.game.state, function (index, value) {
-                    if (value === 1) {
-                        $('#' + index).addClass('cross')
-                    }
-                    if (value === 0) {
-                        $('#' + index).addClass('zero')
-                    }
-                });
-                if (this.game.players.turn === this.$auth.user()._id) {
-                    this.statusIndicator = 'You turn';
-                } else {
-                    this.statusIndicator = 'Waiting...';
-                }
-                this.checkWinner()
-            },
-            makeMove(event) {
-                axios.put(`/games/${this.game._id}`, {
-                    cell: event.target.id,
-                }).then((response) => {
-                        this.game = response.data;
-                        this.renderState()
-                    }
-                )
-            },
             getGame() {
                 axios.get(`/games/${this.$route.params.id}`)
                     .then((response) => {
@@ -56,30 +32,74 @@
                             this.renderState();
                         }
                     ).catch(error => {
+                    console.error(error);
                     this.$router.push(`/404`)
                 });
             },
-            checkWinner() {
-                if (!this.game['winner']) return;
+            renderState() {
+                this.renderCells();
+                this.updateStatusBar();
+            },
+            renderCells() {
+                $.each(this.game.cell_collection, function (index, gameCell) {
+                    const cellId = gameCell.row.toString() + gameCell.column.toString();
+                    const value = gameCell.value;
 
-                if (this.game['winner'] === this.$auth.user()._id) {
+                    if (value === 'cross') {
+                        $('#' + cellId).addClass('cross')
+                    }
+                    if (value === 'zero') {
+                        $('#' + cellId).addClass('zero')
+                    }
+                });
+            },
+            updateStatusBar() {
+                if (this.game.winner_id) {
+                    this.updateWinnerInfo();
+                } else {
+                    this.updateTurnInfo();
+                }
+            },
+            updateTurnInfo() {
+                if (this.game.active_player_id === this.$auth.user().id) {
+                    this.statusIndicator = 'You turn';
+                } else {
+                    this.statusIndicator = 'Waiting...';
+                }
+            },
+            updateWinnerInfo() {
+                if (this.game.winner_id === this.$auth.user().id) {
                     this.statusIndicator = 'You win!';
                 } else {
                     this.statusIndicator = 'You lose';
                 }
             },
+            makeMove(event) {
+                const cell = {
+                    row: event.target.id.charAt(0),
+                    column: event.target.id.charAt(1),
+                };
+
+                axios.put(`/games/${this.game.id}`, cell).then((response) => {
+                        this.game.active_player_id = response.data.active_player_id;
+                        this.game.cell_collection = response.data.cell_collection;
+                        this.renderState()
+                    }
+                )
+            },
             listen() {
                 this.socketListen = true;
 
-                Echo.channel('game.' + this.game._id)
-                    .listen('.GameTurn', (game) => {
-                        this.game = game.game;
+                Echo.channel('game.' + this.game.id)
+                    .listen('.GameChangeStateEvent', (game) => {
+                        console.log(game);
+                        this.game = game;
                         this.renderState()
                     });
             }
         },
         mounted() {
-            this.getGame()
+            this.getGame();
         }
     }
 </script>
@@ -125,5 +145,4 @@
         border-radius: 50%;
         width: 100px;
     }
-
 </style>

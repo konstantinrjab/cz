@@ -37,7 +37,7 @@
                     password: this.password,
                 })
                     .then((response) => {
-                            this.$router.push(`/games/${response.data._id}`)
+                            this.$router.push(`/games/${response.data.id}`)
                         }
                     )
                     .catch((error) => {
