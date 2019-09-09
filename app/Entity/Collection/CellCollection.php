@@ -37,6 +37,11 @@ class CellCollection extends Collection
     public function getWinner(): ?string
     {
         $winner = null;
+        $winner = $this->getWinnerByMainDiagonal() ?? $this->getWinnerBySideDiagonal();
+        if ($winner) {
+            return $winner;
+        }
+
         for ($line = 1; $line <= $this->getSize(); $line++) {
             $winner = $this->getWinnerByRow($line) ?? $this->getWinnerByColumn($line);
             if ($winner) {
@@ -56,17 +61,57 @@ class CellCollection extends Collection
     {
         $columns = $this->where('column', $columnNumber);
 
-        return $this->getWinnerValueByLine($columns);
+        return $this->getWinnerValue($columns);
     }
 
     private function getWinnerByRow(string $rowNumber): ?string
     {
         $rows = $this->where('row', $rowNumber);
 
-        return $this->getWinnerValueByLine($rows);
+        return $this->getWinnerValue($rows);
     }
 
-    private function getWinnerValueByLine(CellCollection $cellCollection): ?string
+    private function getWinnerByMainDiagonal(): ?string
+    {
+        $mainDiagonal = new static;
+        for ($row = 1; $row <= $this->getSize(); $row++) {
+            $cell = $this
+                ->where('row', $row)
+                ->where('column', $row)
+                ->first();
+
+            $mainDiagonal->push($cell);
+        }
+
+        if ($winner = $this->getWinnerValue($mainDiagonal)) {
+            return $winner;
+        }
+
+        return null;
+    }
+
+    private function getWinnerBySideDiagonal(): ?string
+    {
+        $sideDiagonal = new self;
+        $size = $this->getSize();
+
+        for ($row = 1; $row <= $size; $row++) {
+            $cell = $this
+                ->where('row', $row)
+                ->where('column', ($size - $row + 1))
+                ->first();
+
+            $sideDiagonal->push($cell);
+        }
+
+        if ($winner = $this->getWinnerValue($sideDiagonal)) {
+            return $winner;
+        }
+
+        return null;
+    }
+
+    private function getWinnerValue(CellCollection $cellCollection): ?string
     {
         $value = null;
         foreach ($cellCollection as $cell) {
