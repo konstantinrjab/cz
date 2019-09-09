@@ -3,7 +3,7 @@
 namespace App\Events;
 
 use App\Entity\Game;
-use App\Http\Services\GameRepresentationService;
+use App\Services\GameRepresentationService;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;

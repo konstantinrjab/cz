@@ -31,13 +31,8 @@
                 has_error: false
             }
         },
-        mounted() {
-            //
-        },
         methods: {
             login() {
-                // get the redirect object
-                let redirect = this.$auth.redirect();
                 let app = this;
                 this.$auth.login({
                     params: {
@@ -45,9 +40,7 @@
                         password: app.password
                     },
                     success: function() {
-                        // handle redirection
-                        const redirectTo = redirect ? redirect.from.name : this.$auth.user().role === 2 ? 'admin.dashboard' : 'dashboard';
-                        this.$router.push({name: redirectTo})
+                        this.$router.push('dashboard')
                     },
                     error: function(res) {
                         app.has_error = true

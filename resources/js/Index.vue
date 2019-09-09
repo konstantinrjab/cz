@@ -10,11 +10,6 @@
     import navigationMenu from './components/Menu.vue'
 
     export default {
-        data() {
-            return {
-                //
-            }
-        },
         components: {
             navigationMenu
         }

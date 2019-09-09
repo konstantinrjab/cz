@@ -15,7 +15,7 @@ class CreateGameRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string|min:3|required|unique:games',
+            'name' => 'string|min:3|required',
             'password' => 'string|min:3'
         ];
     }

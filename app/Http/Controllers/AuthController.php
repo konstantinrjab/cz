@@ -7,6 +7,7 @@ use App\Http\Requests\RegisterRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\JWTGuard;
 
 class AuthController extends Controller
 {
@@ -24,6 +25,7 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
         if ($token = $this->guard()->attempt($credentials)) {
+
             return response()->json(['status' => 'success'], JsonResponse::HTTP_OK)
                 ->header('Authorization', $token);
         }
@@ -54,15 +56,16 @@ class AuthController extends Controller
     public function refresh(): JsonResponse
     {
         if ($token = $this->guard()->refresh()) {
+
             return response()
                 ->json(['status' => 'success'], JsonResponse::HTTP_OK)
                 ->header('Authorization', $token);
         }
 
-        return response()->json(['error' => 'refresh_token_error'], JsonResponse::HTTP_UNAUTHORIZED);
+        return response()->json(['error' => 'refresh token error'], JsonResponse::HTTP_UNAUTHORIZED);
     }
 
-    private function guard()
+    private function guard(): JWTGuard
     {
         return Auth::guard();
     }

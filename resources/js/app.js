@@ -6,8 +6,9 @@ import VueAuth from '@websanova/vue-auth'
 import VueAxios from 'vue-axios'
 import VueRouter from 'vue-router'
 import Index from './Index'
-import auth from './auth'
-import router from './router'
+import auth from './entity/auth'
+import router from './entity/router'
+import './entity/unauthtorized_interseptor'
 
 window.Vue = Vue;
 
